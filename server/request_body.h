@@ -10,6 +10,6 @@ class RequestBody {
     
 
     virtual Result<std::unique_ptr<RequestBody>> from_json(const nlohmann::json& json) = 0;
-    virtual nlohmann::json to_json() const = 0;
+    virtual nlohmann::json validate() const = 0;
 
 };

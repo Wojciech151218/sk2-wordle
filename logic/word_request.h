@@ -3,12 +3,14 @@
 #include "server/request_body.h"
 #include <string>
 
-class Word : public RequestBody {
+class WordRequest : public RequestBody {
+
     public:
-        Word(std::string word);
-        Word() : RequestBody() {};
+     
+        WordRequest(std::string word);
+        WordRequest() : RequestBody() {};
         Result<std::unique_ptr<RequestBody>> from_json(const nlohmann::json& json) override;
-        nlohmann::json to_json() const override;
+        nlohmann::json validate() const override;
         std::string word;
     private:
 };
