@@ -6,7 +6,10 @@
 
 #include "utils/logger.h"
 #include "server/tcp_server.h"
+#include "logic/word_method.h"
 using namespace std;
+
+
 
 namespace {
 void print_usage(const char* program_name) {
@@ -33,7 +36,7 @@ int main(int argc, char* argv[]) {
     logger.debug("Logger configured with defaults");
 
     TcpServer server;
-    
+    server.add_method(word_method);
     server.start(port, address);
     server.run();
     server.stop();
