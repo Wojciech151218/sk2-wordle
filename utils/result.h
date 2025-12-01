@@ -32,12 +32,15 @@ class Result {
     Error unwrap_err(bool should_exit = true) const;
 
     template <typename U>
-    Result<U> and_then(Result<U> result) const;
+    Result<U> chain(Result<U> result) const;
 
     template <typename U>
-    Result<U> and_then(const std::function<Result<U>(T)>& func) const;
+    Result<U> chain(const std::function<Result<U>(T)>& func) const;
 
-    Result<int> and_then_from_bsd(int value, const std::string& error_message) const;
+    template <typename U>
+    Result<U> chain(const std::function<U()>& func) const;
+
+    Result<int> chain_from_bsd(int value, const std::string& error_message) const;
 
     template <typename U>
     Result<U> finally(const std::function<U()>& func) const;
@@ -101,7 +104,7 @@ inline Error Result<T>::unwrap_err(bool should_exit) const {
 
 template <typename T>
 template <typename U>
-inline Result<U> Result<T>::and_then(Result<U> result) const {
+inline Result<U> Result<T>::chain(Result<U> result) const {
     if (is_ok()) {
         return result;
     }
@@ -110,7 +113,7 @@ inline Result<U> Result<T>::and_then(Result<U> result) const {
 
 template <typename T>
 template <typename U>
-inline Result<U> Result<T>::and_then(const std::function<Result<U>(T)>& func) const {
+inline Result<U> Result<T>::chain(const std::function<Result<U>(T)>& func) const {
     if (is_ok()) {
         return func(right.value());
     }
@@ -119,7 +122,7 @@ inline Result<U> Result<T>::and_then(const std::function<Result<U>(T)>& func) co
 }
 
 template <typename T>
-inline Result<int> Result<T>::and_then_from_bsd(int value, const std::string& error_message) const {
+inline Result<int> Result<T>::chain_from_bsd(int value, const std::string& error_message) const {
     if (is_err()) {
         return Result<int>(current_error());
     }

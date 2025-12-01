@@ -29,7 +29,7 @@ void TcpServer::stop() {
 void TcpServer::handle_client(TcpSocket* client_socket) {
     Logger& logger = Logger::instance();
     client_socket->receive()
-        .and_then<std::string>([&](std::string response) {
+        .chain<std::string>([&](std::string response) {
             logger.debug("Received from client: " + response);
             client_socket->send(response);
             return response;

@@ -22,7 +22,7 @@ Result<void*> TcpClient::disconnect() {
 
 Result<std::string> TcpClient::request(const std::string& data) {
     logger.info("Sending request to server: " + data);
-    return socket.send(data).and_then<std::string>([&](auto) {
+    return socket.send(data).chain<std::string>([&](auto) {
         return socket.receive();
     });
 }

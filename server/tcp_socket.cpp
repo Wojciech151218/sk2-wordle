@@ -35,11 +35,11 @@ Result<TcpSocket> TcpSocket::listen(const std::string& host, int port, int max_c
 
 
     return check_connected("Failed to create socket")
-        .and_then_from_bsd(
+        .chain_from_bsd(
             bind(socket_fd, (struct sockaddr*)&addr, sizeof(addr)), 
             "Failed to create socket"
         )
-        .and_then_from_bsd(
+        .chain_from_bsd(
             ::listen(socket_fd, max_connections), 
             "Failed to listen on socket"
         )
@@ -57,11 +57,11 @@ Result<TcpSocket> TcpSocket::connect(const std::string& host, int port) {
 
 
     return check_connected("Failed to create socket")
-        .and_then_from_bsd(
+        .chain_from_bsd(
         ::inet_pton(AF_INET, host.c_str(), &server_addr.sin_addr),
         "Failed to convert host to IP address"
         )
-        .and_then_from_bsd(
+        .chain_from_bsd(
             ::connect(socket_fd, (struct sockaddr*)&server_addr, sizeof(server_addr)), 
             "Failed to connect to socket"
         )
@@ -72,7 +72,7 @@ Result<TcpSocket> TcpSocket::connect(const std::string& host, int port) {
 
 Result<void*> TcpSocket::disconnect() {
     return check_connected("Socket not connected")
-    .and_then_from_bsd(
+    .chain_from_bsd(
         close(this->socket_fd),
     "Failed to close socket"
     )
@@ -86,7 +86,7 @@ Result<void*> TcpSocket::disconnect() {
 
 Result<size_t> TcpSocket::send(const std::string& data) {
     return check_connected("Socket not connected")
-    .and_then_from_bsd(
+    .chain_from_bsd(
         ::send(this->socket_fd, data.c_str(), data.size(), 0), 
         "Failed to send data"
     ).finally<size_t>([&](size_t result) {
@@ -100,7 +100,7 @@ Result<std::string> TcpSocket::receive() {
     char buffer[1024];
 
     return check_connected("Socket not connected")
-    .and_then_from_bsd(
+    .chain_from_bsd(
         ::recv(this->socket_fd, buffer, 1024, 0), 
         "Failed to receive data"
     )
@@ -114,7 +114,7 @@ Result<TcpSocket> TcpSocket::accept() {
     socklen_t client_addr_len = sizeof(client_addr);
 
     return check_connected("Socket not connected")
-    .and_then_from_bsd(
+    .chain_from_bsd(
         ::accept(
             this->socket_fd,
             (struct sockaddr*)&client_addr,
