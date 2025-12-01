@@ -1,0 +1,55 @@
+#pragma once
+
+#include "Error.h"
+
+#include <iostream>
+#include <string>
+
+class Logger {
+  public:
+    enum class Level { Info, Debug, Error };
+
+    struct Options {
+        bool info_enabled = true;
+        bool debug_enabled = true;
+        bool error_enabled = true;
+        bool use_colors = true;
+    };
+
+    static Logger& instance();
+
+    Logger(const Logger&) = delete;
+    Logger& operator=(const Logger&) = delete;
+    Logger(Logger&&) = delete;
+    Logger& operator=(Logger&&) = delete;
+
+    void set_level_enabled(Level level, bool enabled);
+    void enable(Level level);
+    void disable(Level level);
+    bool is_level_enabled(Level level) const;
+
+    void set_use_colors(bool enabled);
+    bool uses_colors() const;
+
+    void configure(const Options& options);
+    Options current_options() const;
+
+    void info(const std::string& message) const;
+    void debug(const std::string& message) const;
+    void error(const Error& error) const;
+    void log(Level level, const std::string& message) const;
+
+  private:
+    std::ostream& out_stream;
+    std::ostream& err_stream;
+    Options options;
+
+    Logger();
+    Logger(std::ostream& out_stream, std::ostream& err_stream, Options options);
+
+    bool level_enabled(Level level) const;
+    const char* level_name(Level level) const;
+    const char* level_color(Level level) const;
+    void write(Level level, const std::string& message) const;
+};
+

@@ -1,0 +1,128 @@
+[
+{
+  "directory": "/home/wojtek/Documents/dev/sieci/projekt/build",
+  "command": "/usr/bin/c++  -I/home/wojtek/Documents/dev/sieci/projekt -g -O0 -g3 -fno-omit-frame-pointer -std=c++17 -o CMakeFiles/sieci_server.dir/main.cpp.o -c /home/wojtek/Documents/dev/sieci/projekt/main.cpp",
+  "file": "/home/wojtek/Documents/dev/sieci/projekt/main.cpp",
+  "output": "CMakeFiles/sieci_server.dir/main.cpp.o"
+},
+{
+  "directory": "/home/wojtek/Documents/dev/sieci/projekt/build",
+  "command": "/usr/bin/c++  -I/home/wojtek/Documents/dev/sieci/projekt -g -O0 -g3 -fno-omit-frame-pointer -std=c++17 -o CMakeFiles/sieci_server.dir/tcp_server.cpp.o -c /home/wojtek/Documents/dev/sieci/projekt/tcp_server.cpp",
+  "file": "/home/wojtek/Documents/dev/sieci/projekt/tcp_server.cpp",
+  "output": "CMakeFiles/sieci_server.dir/tcp_server.cpp.o"
+},
+{
+  "directory": "/home/wojtek/Documents/dev/sieci/projekt/build",
+  "command": "/usr/bin/c++  -I/home/wojtek/Documents/dev/sieci/projekt -g -O0 -g3 -fno-omit-frame-pointer -std=c++17 -o CMakeFiles/sieci_server.dir/tcp_socket.cpp.o -c /home/wojtek/Documents/dev/sieci/projekt/tcp_socket.cpp",
+  "file": "/home/wojtek/Documents/dev/sieci/projekt/tcp_socket.cpp",
+  "output": "CMakeFiles/sieci_server.dir/tcp_socket.cpp.o"
+},
+{
+  "directory": "/home/wojtek/Documents/dev/sieci/projekt/build",
+  "command": "/usr/bin/c++  -I/home/wojtek/Documents/dev/sieci/projekt -g -O0 -g3 -fno-omit-frame-pointer -std=c++17 -o CMakeFiles/sieci_server.dir/tcp_client.cpp.o -c /home/wojtek/Documents/dev/sieci/projekt/tcp_client.cpp",
+  "file": "/home/wojtek/Documents/dev/sieci/projekt/tcp_client.cpp",
+  "output": "CMakeFiles/sieci_server.dir/tcp_client.cpp.o"
+},
+{
+  "directory": "/home/wojtek/Documents/dev/sieci/projekt/build",
+  "command": "/usr/bin/c++  -I/home/wojtek/Documents/dev/sieci/projekt -g -O0 -g3 -fno-omit-frame-pointer -std=c++17 -o CMakeFiles/sieci_server.dir/Error.cpp.o -c /home/wojtek/Documents/dev/sieci/projekt/Error.cpp",
+  "file": "/home/wojtek/Documents/dev/sieci/projekt/Error.cpp",
+  "output": "CMakeFiles/sieci_server.dir/Error.cpp.o"
+},
+{
+  "directory": "/home/wojtek/Documents/dev/sieci/projekt/build",
+  "command": "/usr/bin/c++  -I/home/wojtek/Documents/dev/sieci/projekt -g -O0 -g3 -fno-omit-frame-pointer -std=c++17 -o CMakeFiles/sieci_server.dir/Result.cpp.o -c /home/wojtek/Documents/dev/sieci/projekt/Result.cpp",
+  "file": "/home/wojtek/Documents/dev/sieci/projekt/Result.cpp",
+  "output": "CMakeFiles/sieci_server.dir/Result.cpp.o"
+},
+{
+  "directory": "/home/wojtek/Documents/dev/sieci/projekt/build",
+  "command": "/usr/bin/c++  -I/home/wojtek/Documents/dev/sieci/projekt -g -O0 -g3 -fno-omit-frame-pointer -std=c++17 -o CMakeFiles/sieci_server.dir/logger.cpp.o -c /home/wojtek/Documents/dev/sieci/projekt/logger.cpp",
+  "file": "/home/wojtek/Documents/dev/sieci/projekt/logger.cpp",
+  "output": "CMakeFiles/sieci_server.dir/logger.cpp.o"
+},
+{
+  "directory": "/home/wojtek/Documents/dev/sieci/projekt/build",
+  "command": "/usr/bin/c++  -I/home/wojtek/Documents/dev/sieci/projekt -g -O0 -g3 -fno-omit-frame-pointer -std=c++17 -o CMakeFiles/server_test.dir/server_test.cpp.o -c /home/wojtek/Documents/dev/sieci/projekt/server_test.cpp",
+  "file": "/home/wojtek/Documents/dev/sieci/projekt/server_test.cpp",
+  "output": "CMakeFiles/server_test.dir/server_test.cpp.o"
+},
+{
+  "directory": "/home/wojtek/Documents/dev/sieci/projekt/build",
+  "command": "/usr/bin/c++  -I/home/wojtek/Documents/dev/sieci/projekt -g -O0 -g3 -fno-omit-frame-pointer -std=c++17 -o CMakeFiles/server_test.dir/tcp_server.cpp.o -c /home/wojtek/Documents/dev/sieci/projekt/tcp_server.cpp",
+  "file": "/home/wojtek/Documents/dev/sieci/projekt/tcp_server.cpp",
+  "output": "CMakeFiles/server_test.dir/tcp_server.cpp.o"
+},
+{
+  "directory": "/home/wojtek/Documents/dev/sieci/projekt/build",
+  "command": "/usr/bin/c++  -I/home/wojtek/Documents/dev/sieci/projekt -g -O0 -g3 -fno-omit-frame-pointer -std=c++17 -o CMakeFiles/server_test.dir/tcp_socket.cpp.o -c /home/wojtek/Documents/dev/sieci/projekt/tcp_socket.cpp",
+  "file": "/home/wojtek/Documents/dev/sieci/projekt/tcp_socket.cpp",
+  "output": "CMakeFiles/server_test.dir/tcp_socket.cpp.o"
+},
+{
+  "directory": "/home/wojtek/Documents/dev/sieci/projekt/build",
+  "command": "/usr/bin/c++  -I/home/wojtek/Documents/dev/sieci/projekt -g -O0 -g3 -fno-omit-frame-pointer -std=c++17 -o CMakeFiles/server_test.dir/tcp_client.cpp.o -c /home/wojtek/Documents/dev/sieci/projekt/tcp_client.cpp",
+  "file": "/home/wojtek/Documents/dev/sieci/projekt/tcp_client.cpp",
+  "output": "CMakeFiles/server_test.dir/tcp_client.cpp.o"
+},
+{
+  "directory": "/home/wojtek/Documents/dev/sieci/projekt/build",
+  "command": "/usr/bin/c++  -I/home/wojtek/Documents/dev/sieci/projekt -g -O0 -g3 -fno-omit-frame-pointer -std=c++17 -o CMakeFiles/server_test.dir/Error.cpp.o -c /home/wojtek/Documents/dev/sieci/projekt/Error.cpp",
+  "file": "/home/wojtek/Documents/dev/sieci/projekt/Error.cpp",
+  "output": "CMakeFiles/server_test.dir/Error.cpp.o"
+},
+{
+  "directory": "/home/wojtek/Documents/dev/sieci/projekt/build",
+  "command": "/usr/bin/c++  -I/home/wojtek/Documents/dev/sieci/projekt -g -O0 -g3 -fno-omit-frame-pointer -std=c++17 -o CMakeFiles/server_test.dir/Result.cpp.o -c /home/wojtek/Documents/dev/sieci/projekt/Result.cpp",
+  "file": "/home/wojtek/Documents/dev/sieci/projekt/Result.cpp",
+  "output": "CMakeFiles/server_test.dir/Result.cpp.o"
+},
+{
+  "directory": "/home/wojtek/Documents/dev/sieci/projekt/build",
+  "command": "/usr/bin/c++  -I/home/wojtek/Documents/dev/sieci/projekt -g -O0 -g3 -fno-omit-frame-pointer -std=c++17 -o CMakeFiles/server_test.dir/logger.cpp.o -c /home/wojtek/Documents/dev/sieci/projekt/logger.cpp",
+  "file": "/home/wojtek/Documents/dev/sieci/projekt/logger.cpp",
+  "output": "CMakeFiles/server_test.dir/logger.cpp.o"
+},
+{
+  "directory": "/home/wojtek/Documents/dev/sieci/projekt/build",
+  "command": "/usr/bin/c++  -I/home/wojtek/Documents/dev/sieci/projekt -g -O0 -g3 -fno-omit-frame-pointer -std=c++17 -o CMakeFiles/client_test.dir/client_test.cpp.o -c /home/wojtek/Documents/dev/sieci/projekt/client_test.cpp",
+  "file": "/home/wojtek/Documents/dev/sieci/projekt/client_test.cpp",
+  "output": "CMakeFiles/client_test.dir/client_test.cpp.o"
+},
+{
+  "directory": "/home/wojtek/Documents/dev/sieci/projekt/build",
+  "command": "/usr/bin/c++  -I/home/wojtek/Documents/dev/sieci/projekt -g -O0 -g3 -fno-omit-frame-pointer -std=c++17 -o CMakeFiles/client_test.dir/tcp_server.cpp.o -c /home/wojtek/Documents/dev/sieci/projekt/tcp_server.cpp",
+  "file": "/home/wojtek/Documents/dev/sieci/projekt/tcp_server.cpp",
+  "output": "CMakeFiles/client_test.dir/tcp_server.cpp.o"
+},
+{
+  "directory": "/home/wojtek/Documents/dev/sieci/projekt/build",
+  "command": "/usr/bin/c++  -I/home/wojtek/Documents/dev/sieci/projekt -g -O0 -g3 -fno-omit-frame-pointer -std=c++17 -o CMakeFiles/client_test.dir/tcp_socket.cpp.o -c /home/wojtek/Documents/dev/sieci/projekt/tcp_socket.cpp",
+  "file": "/home/wojtek/Documents/dev/sieci/projekt/tcp_socket.cpp",
+  "output": "CMakeFiles/client_test.dir/tcp_socket.cpp.o"
+},
+{
+  "directory": "/home/wojtek/Documents/dev/sieci/projekt/build",
+  "command": "/usr/bin/c++  -I/home/wojtek/Documents/dev/sieci/projekt -g -O0 -g3 -fno-omit-frame-pointer -std=c++17 -o CMakeFiles/client_test.dir/tcp_client.cpp.o -c /home/wojtek/Documents/dev/sieci/projekt/tcp_client.cpp",
+  "file": "/home/wojtek/Documents/dev/sieci/projekt/tcp_client.cpp",
+  "output": "CMakeFiles/client_test.dir/tcp_client.cpp.o"
+},
+{
+  "directory": "/home/wojtek/Documents/dev/sieci/projekt/build",
+  "command": "/usr/bin/c++  -I/home/wojtek/Documents/dev/sieci/projekt -g -O0 -g3 -fno-omit-frame-pointer -std=c++17 -o CMakeFiles/client_test.dir/Error.cpp.o -c /home/wojtek/Documents/dev/sieci/projekt/Error.cpp",
+  "file": "/home/wojtek/Documents/dev/sieci/projekt/Error.cpp",
+  "output": "CMakeFiles/client_test.dir/Error.cpp.o"
+},
+{
+  "directory": "/home/wojtek/Documents/dev/sieci/projekt/build",
+  "command": "/usr/bin/c++  -I/home/wojtek/Documents/dev/sieci/projekt -g -O0 -g3 -fno-omit-frame-pointer -std=c++17 -o CMakeFiles/client_test.dir/Result.cpp.o -c /home/wojtek/Documents/dev/sieci/projekt/Result.cpp",
+  "file": "/home/wojtek/Documents/dev/sieci/projekt/Result.cpp",
+  "output": "CMakeFiles/client_test.dir/Result.cpp.o"
+},
+{
+  "directory": "/home/wojtek/Documents/dev/sieci/projekt/build",
+  "command": "/usr/bin/c++  -I/home/wojtek/Documents/dev/sieci/projekt -g -O0 -g3 -fno-omit-frame-pointer -std=c++17 -o CMakeFiles/client_test.dir/logger.cpp.o -c /home/wojtek/Documents/dev/sieci/projekt/logger.cpp",
+  "file": "/home/wojtek/Documents/dev/sieci/projekt/logger.cpp",
+  "output": "CMakeFiles/client_test.dir/logger.cpp.o"
+}
+]

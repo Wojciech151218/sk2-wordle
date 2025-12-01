@@ -1,0 +1,105 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug sieci_server",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/debug/sieci_server",
+            "args": [
+                "${input:listenAddress}",
+                "${input:serverPort}"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "MIMode": "gdb",
+            "miDebuggerPath": "gdb",
+            "externalConsole": false,
+            "preLaunchTask": "Build Debug",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "Debug server_test",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/debug/server_test",
+            "args": [
+                "${input:listenAddress}",
+                "${input:serverPort}",
+                "${input:serverResponse}"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "MIMode": "gdb",
+            "miDebuggerPath": "gdb",
+            "externalConsole": false,
+            "preLaunchTask": "Build Debug",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "Debug client_test",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/debug/client_test",
+            "args": [
+                "${input:listenAddress}",
+                "${input:serverPort}",
+                "${input:clientMessage}"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "MIMode": "gdb",
+            "miDebuggerPath": "gdb",
+            "externalConsole": false,
+            "preLaunchTask": "Build Debug",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        }
+    ],
+    "inputs": [
+        {
+            "id": "serverPort",
+            "type": "promptString",
+            "description": "TCP port to listen on",
+            "default": "5000"
+        },
+        {
+            "id": "listenAddress",
+            "type": "promptString",
+            "description": "Listen address",
+            "default": "0.0.0.0"
+        },
+        {
+            "id": "serverResponse",
+            "type": "promptString",
+            "description": "server_test response payload",
+            "default": "Hello, client!"
+        },
+        {
+            "id": "clientMessage",
+            "type": "promptString",
+            "description": "client_test request payload",
+            "default": "Hello, server!"
+        }
+    ]
+}
+
+

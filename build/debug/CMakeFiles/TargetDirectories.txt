@@ -1,0 +1,5 @@
+/home/wojtek/Documents/dev/sieci/projekt/build/debug/CMakeFiles/sieci_server.dir
+/home/wojtek/Documents/dev/sieci/projekt/build/debug/CMakeFiles/server_test.dir
+/home/wojtek/Documents/dev/sieci/projekt/build/debug/CMakeFiles/client_test.dir
+/home/wojtek/Documents/dev/sieci/projekt/build/debug/CMakeFiles/edit_cache.dir
+/home/wojtek/Documents/dev/sieci/projekt/build/debug/CMakeFiles/rebuild_cache.dir

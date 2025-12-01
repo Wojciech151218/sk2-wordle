@@ -1,0 +1,97 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "Configure Debug Build",
+            "command": "cmake",
+            "args": [
+                "-S",
+                ".",
+                "-B",
+                "build/debug",
+                "-DCMAKE_BUILD_TYPE=Debug"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "type": "shell",
+            "label": "Build Debug",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "build/debug"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "dependsOn": "Configure Debug Build"
+        },
+        {
+            "type": "shell",
+            "label": "Run Server Test Script",
+            "command": "${workspaceFolder}/run_server_test.sh",
+            "args": [
+                "${input:listenAddress}",
+                "${input:serverPort}",
+                "${input:serverResponse}"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "dependsOn": "Build Debug"
+        },
+        {
+            "type": "shell",
+            "label": "Run Client Test Script",
+            "command": "${workspaceFolder}/run_client_test.sh",
+            "args": [
+                "${input:listenAddress}",
+                "${input:serverPort}",
+                "${input:clientMessage}"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "dependsOn": "Build Debug"
+        }
+    ],
+    "inputs": [
+        {
+            "id": "listenAddress",
+            "type": "promptString",
+            "description": "IPv4 address to connect/bind",
+            "default": "127.0.0.1"
+        },
+        {
+            "id": "serverPort",
+            "type": "promptString",
+            "description": "TCP port to use",
+            "default": "5000"
+        },
+        {
+            "id": "serverResponse",
+            "type": "promptString",
+            "description": "Response payload for server_test",
+            "default": "Hello, client!"
+        },
+        {
+            "id": "clientMessage",
+            "type": "promptString",
+            "description": "Message to send from client_test",
+            "default": "Hello, server!"
+        }
+    ]
+}
+
+
