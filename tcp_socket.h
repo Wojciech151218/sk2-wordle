@@ -21,6 +21,6 @@ class TcpSocket {
     Result<TcpSocket> connect(const std::string& host, int port);
     Result<void*> disconnect();
     Result<size_t> send(const std::string& data);
-    Result<std::string> receive(const TcpSocket& socket);
+    Result<std::string> receive();
     Result<TcpSocket> accept();
 };

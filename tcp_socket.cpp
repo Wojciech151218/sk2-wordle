@@ -91,7 +91,7 @@ Result<size_t> TcpSocket::send(const std::string& data) {
     
 }
 
-Result<std::string> TcpSocket::receive(const TcpSocket& socket) {
+Result<std::string> TcpSocket::receive() {
     char buffer[1024];
 
     return check_connected("Socket not connected")

@@ -56,10 +56,10 @@ int main(int argc, char* argv[]) {
     logger.debug("Server test harness starting");
 
     TcpServer server;
-    server.run(port, address);
+    server.start(port, address);
 
     while (true) {
-        auto client_response = server.respond(response_payload);
+        auto client_response = server.run(response_payload);
         if (client_response.is_err()) {
             logger.error(client_response.unwrap_err());
             break;

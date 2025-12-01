@@ -21,6 +21,7 @@ set(SIECI_SHARED_SOURCES
     tcp_server.cpp
     tcp_socket.cpp
     tcp_client.cpp
+    thread_pool.cpp
     Error.cpp
     Result.cpp
     logger.cpp
