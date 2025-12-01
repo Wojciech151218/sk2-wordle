@@ -29,6 +29,7 @@ class Result {
     bool is_ok() const;
     bool is_err() const;
     T unwrap(bool should_exit = true) const;
+    T unwrap(bool should_exit = true);
     Error unwrap_err(bool should_exit = true) const;
 
     template <typename U>
@@ -89,6 +90,15 @@ template <typename T>
 inline T Result<T>::unwrap(bool should_exit) const {
     if (is_ok()) {
         return right.value();
+    }
+    left.value().handle_error(should_exit);
+    throw std::runtime_error("Attempted to unwrap error result");
+}
+
+template <typename T>
+inline T Result<T>::unwrap(bool should_exit) {
+    if (is_ok()) {
+        return std::move(right.value());
     }
     left.value().handle_error(should_exit);
     throw std::runtime_error("Attempted to unwrap error result");

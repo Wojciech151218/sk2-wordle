@@ -7,6 +7,6 @@ client.connect(5000, '0.0.0.0', () => {
   client.write('Hello from Node TCP client');
 });
 
-// client.on('data', (data) => {
-//   console.log('Received:', data.toString());
-// });
+client.on('data', (data) => {
+  console.log('Received:', data.toString());
+});

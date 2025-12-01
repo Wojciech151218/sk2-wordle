@@ -4,7 +4,8 @@
 
 TcpServer::TcpServer()
     : socket(TcpSocket()),
-      thread_pool(10, [this](TcpSocket* client) { handle_client(client); }) {}
+      thread_pool(10, [this](TcpSocket* client) { handle_client(client); }),
+      router(Router()) {}
 
 TcpServer::~TcpServer() {
     socket.disconnect();
@@ -29,8 +30,9 @@ void TcpServer::stop() {
 void TcpServer::handle_client(TcpSocket* client_socket) {
     Logger& logger = Logger::instance();
     client_socket->receive()
-        .chain<std::string>([&](std::string response) {
-            logger.debug("Received from client: " + response);
+        .chain<std::string>([&](std::string req) {
+            logger.debug("Received from client: " + req);
+            auto response = router.handle_request(req);
             client_socket->send(response);
             return response;
         });
@@ -51,4 +53,8 @@ void TcpServer::run() {
         thread_pool.enqueue(client_socket);
     }
     
+}
+
+void TcpServer::add_method(const ServerMethod & method) {
+    router.add_method(method);
 }

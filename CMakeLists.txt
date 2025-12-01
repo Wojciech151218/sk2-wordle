@@ -17,6 +17,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -g3 -fno-omit-frame-pointer")
 
+add_subdirectory(external/nlohmann_json)
+
 file(GLOB SIECI_SHARED_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/server/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/utils/*.cpp"
@@ -29,12 +31,12 @@ add_executable(sieci_server
 )
 
 
-add_executable(client_test
-    artifacts/client_test.cpp
-    ${SIECI_SHARED_SOURCES}
-)
+set(PROJECT_TARGETS sieci_server server_test)
 
-foreach(target_name IN ITEMS sieci_server server_test client_test)
-    target_include_directories(${target_name} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
+foreach(target_name IN LISTS PROJECT_TARGETS)
+    if(TARGET ${target_name})
+        target_include_directories(${target_name} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
+        target_link_libraries(${target_name} PRIVATE nlohmann_json::nlohmann_json)
+    endif()
 endforeach()
 

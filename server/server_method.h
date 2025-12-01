@@ -2,17 +2,20 @@
 
 #include <string>
 #include <functional>
+#include "server/request_body.h"
 #include "utils/result.h"
-template<typename P>
+
 class ServerMethod {
   private:
     std::string name;
-    std::function<Result<P>(std::string)> parser;
-    std::function<std::string(P)> handler;
+    RequestBody * method_body;
+    std::function<nlohmann::json(const RequestBody&)> handler;
 
-    public:
-        ServerMethod(std::string name, std::function<Result<P>(std::string)> parser, std::function<std::string(P)> handler);
+    
+
+  public:
+    ServerMethod(std::string name, RequestBody * method_body, std::function<nlohmann::json(const RequestBody&)> handler);
     std::string get_name() const;
-    std::string handle_request(std::string request) const;
+    Result<nlohmann::json> handle_request(nlohmann::json request) const;
 
 };

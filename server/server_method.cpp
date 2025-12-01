@@ -1,22 +1,26 @@
 #include "server/server_method.h"
+#include "utils/result.h"
+#include <memory>
 
+ServerMethod::ServerMethod(std::string name, RequestBody * method_body, std::function<nlohmann::json(const RequestBody&)> handler)
+    : name(name), method_body(method_body), handler(handler) {}
 
-template<typename P>
-ServerMethod<P>::ServerMethod(std::string name, std::function<Result<P>(std::string)> parser, std::function<std::string(P)> handler)
-    : name(name), parser(parser), handler(handler) {}
-
-template<typename P>
-std::string ServerMethod<P>::get_name() const {
+std::string ServerMethod::get_name() const {
     return name;
 }
 
-template<typename P>
-std::string ServerMethod<P>::handle_request(std::string request) const {
 
-    auto parse_result = parser(request);
+
+Result<nlohmann::json> ServerMethod::handle_request(nlohmann::json request) const {
+
+    auto parse_result = method_body->from_json(request);
     if (parse_result.is_err()) {
-        return parse_result.unwrap_err().get_message();
+        return Result<nlohmann::json>(parse_result.unwrap_err());
     }
 
-    return handler(parse_result.unwrap());
+    auto request_body = parse_result.unwrap();
+
+    auto handle_result = handler(*request_body);
+
+    return Result<nlohmann::json>(handle_result);
 }
