@@ -2,7 +2,7 @@
 #include "server/server_method.h"
 #include "logic/wordle_types.h"
 
-WordleState wordle_state = WordleState(10);
+WordleState wordle_state = WordleState(6,5);
 
 ServerMethod word_method = ServerMethod("word", new WordRequest(), [](const RequestBody& request) {
     auto word = dynamic_cast<const WordRequest&>(request).word;

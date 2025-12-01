@@ -1,0 +1,19 @@
+{
+  "name": "proxy",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "http_proxy.ts",
+  "scripts": {
+    "start": "tsx http_proxy.ts",
+    "dev": "tsx watch http_proxy.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {},
+  "devDependencies": {
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}

@@ -46,9 +46,10 @@ class WordleState {
 private:
     std::vector<WordleWord> words;
     size_t max_words;
+    size_t letters_per_word;
 
 public:
-    WordleState(size_t max_words) : max_words(max_words) {}
+    WordleState(size_t max_words, size_t letters_per_word) : max_words(max_words), letters_per_word(letters_per_word) {}
 
     void add_word(const WordleWord& word) {
         if (words.size() < max_words)
@@ -63,5 +64,5 @@ public:
         return words;
     }
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(WordleState, words, max_words);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(WordleState, words, max_words,letters_per_word);
 };

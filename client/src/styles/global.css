@@ -1,0 +1,297 @@
+:root {
+  font-family: 'Space Grotesk', system-ui, -apple-system, BlinkMacSystemFont,
+    'Segoe UI', sans-serif;
+  color: #f7f9ff;
+  background-color: #05030c;
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: dark;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(circle at 20% 20%, #4f46e5 0%, transparent 45%),
+    radial-gradient(circle at 80% 0%, #ec4899 0%, transparent 35%),
+    linear-gradient(135deg, #05030c 0%, #0c0918 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+#root {
+  width: 100%;
+  max-width: 1200px;
+}
+
+.app-shell {
+  background: rgba(12, 9, 24, 0.85);
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 32px;
+  padding: 3rem clamp(1.5rem, 3vw, 3rem);
+  box-shadow: 0 30px 60px rgba(5, 3, 12, 0.8);
+  position: relative;
+  overflow: hidden;
+  max-height: calc(100vh - 4rem);
+  display: flex;
+  flex-direction: column;
+}
+
+.glow-orb {
+  position: absolute;
+  top: -40%;
+  right: -20%;
+  width: 480px;
+  height: 480px;
+  background: radial-gradient(
+    circle,
+    rgba(79, 70, 229, 0.35) 0%,
+    transparent 70%
+  );
+  filter: blur(20px);
+  pointer-events: none;
+}
+
+.app-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.app-header h1 {
+  font-size: clamp(2.5rem, 5vw, 3.5rem);
+  margin: 0;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.app-header p {
+  margin-top: 0.5rem;
+  color: rgba(247, 249, 255, 0.8);
+}
+
+.app-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  align-items: center;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.status-banner {
+  width: 100%;
+  border-radius: 16px;
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.status-banner p {
+  margin: 0;
+  font-weight: 600;
+}
+
+.status-banner span {
+  color: rgba(247, 249, 255, 0.7);
+  font-size: 0.9rem;
+}
+
+.status-pill {
+  text-transform: capitalize;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+}
+
+.status-info {
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
+.status-success {
+  border-color: rgba(16, 185, 129, 0.4);
+}
+
+.status-danger {
+  border-color: rgba(248, 113, 113, 0.45);
+}
+
+.board {
+  display: grid;
+  gap: 0.75rem;
+  overflow: hidden;
+  width: 100%;
+  padding-right: 0.5rem;
+  align-items: start;
+  justify-items: center;
+  flex-shrink: 0;
+}
+
+.board::-webkit-scrollbar {
+  width: 8px;
+}
+
+.board::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.board::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.board::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.board-row {
+  display: grid;
+  gap: 0.5rem;
+  max-width: fit-content;
+  margin: 0 auto;
+  height: 100%;
+  min-height: 0;
+}
+
+.tile {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.02);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #f7f9ff;
+  box-shadow: inset 0 0 15px rgba(79, 70, 229, 0.08);
+}
+
+.tile-green {
+  background: linear-gradient(145deg, #34d399, #10b981);
+  border-color: rgba(16, 185, 129, 0.6);
+  box-shadow: 0 10px 30px rgba(16, 185, 129, 0.35);
+}
+
+.tile-yellow {
+  background: linear-gradient(145deg, #fcd34d, #f59e0b);
+  border-color: rgba(245, 158, 11, 0.5);
+  box-shadow: 0 10px 30px rgba(245, 158, 11, 0.35);
+}
+
+.tile-gray {
+  background: linear-gradient(145deg, #475569, #334155);
+  border-color: rgba(71, 85, 105, 0.6);
+}
+
+.tile-unknown {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.tile-empty-active {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.keyboard {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.keyboard-row {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.key {
+  flex: 1;
+  max-width: 4rem;
+  padding: 0.75rem 0;
+  border-radius: 12px;
+  border: none;
+  background: rgba(255, 255, 255, 0.05);
+  color: #f7f9ff;
+  font-weight: 600;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.2s ease;
+  box-shadow: inset 0 -4px 8px rgba(255, 255, 255, 0.05);
+}
+
+.key:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.key:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.key.key-wide {
+  flex: 1.4;
+}
+
+.key-green {
+  background: rgba(16, 185, 129, 0.4);
+}
+
+.key-yellow {
+  background: rgba(245, 158, 11, 0.4);
+}
+
+.key-gray {
+  background: rgba(71, 85, 105, 0.5);
+}
+
+.key.is-disabled,
+.key:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  body {
+    padding: 1rem;
+  }
+
+  .app-shell {
+    padding: 2rem 1.25rem;
+  }
+
+  .board-row {
+    gap: 0.5rem;
+  }
+
+  .tile {
+    border-radius: 12px;
+  }
+
+  .key {
+    max-width: none;
+  }
+}
+
