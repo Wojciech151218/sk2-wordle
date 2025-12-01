@@ -1,11 +1,13 @@
 #include "server/tcp_server.h"
 
 #include <string>
+#include <chrono>
 
 TcpServer::TcpServer()
     : socket(TcpSocket()),
       thread_pool(10, [this](TcpSocket* client) { handle_client(client); }),
-      router(Router()) {}
+      router(Router()),
+      client_timeout(std::chrono::seconds(30)) {}
 
 TcpServer::~TcpServer() {
     socket.disconnect();
@@ -29,13 +31,28 @@ void TcpServer::stop() {
 
 void TcpServer::handle_client(TcpSocket* client_socket) {
     Logger& logger = Logger::instance();
-    client_socket->receive()
-        .chain<std::string>([&](std::string req) {
-            logger.debug("Received from client: " + req);
-            auto response = router.handle_request(req);
-            client_socket->send(response);
-            return response;
-        });
+
+    while (true) {
+        auto request = client_socket->receive(client_timeout);
+        if (request.is_err()) {
+            logger.error(request.unwrap_err());
+            client_socket->disconnect();
+            break;
+        }
+
+        auto payload = request.unwrap();
+        logger.debug("Received from client: " + payload);
+        auto response = router.handle_request(payload);
+
+        auto send_result = client_socket->send(response);
+        if (send_result.is_err()) {
+            logger.error(send_result.unwrap_err());
+            client_socket->disconnect();
+            break;
+        }
+    }
+
+    delete client_socket;
 }
 
 
@@ -57,4 +74,12 @@ void TcpServer::run() {
 
 void TcpServer::add_method(const ServerMethod & method) {
     router.add_method(method);
+}
+
+void TcpServer::set_client_timeout(std::chrono::milliseconds timeout) {
+    client_timeout = timeout;
+}
+
+std::chrono::milliseconds TcpServer::get_client_timeout() const {
+    return client_timeout;
 }

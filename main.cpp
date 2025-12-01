@@ -2,7 +2,6 @@
 #include <cstdlib>
 #include <iostream>
 #include <string>
-#include <thread>
 
 #include "utils/logger.h"
 #include "server/tcp_server.h"

@@ -2,6 +2,7 @@
 
 #include "utils/result.h"
 
+#include <chrono>
 #include <optional>
 #include <string>
 
@@ -10,8 +11,10 @@ class TcpSocket {
     int socket_fd;
     std::optional<std::string> host;
     std::optional<int> port;
+    std::chrono::steady_clock::time_point last_activity;
 
     Result<int> check_connected(std::string message) const;
+    void touch();
 
   public:
     TcpSocket();
@@ -21,6 +24,8 @@ class TcpSocket {
     Result<TcpSocket> connect(const std::string& host, int port);
     Result<void*> disconnect();
     Result<size_t> send(const std::string& data);
-    Result<std::string> receive();
+    Result<std::string> receive(std::optional<std::chrono::milliseconds> timeout = std::nullopt);
     Result<TcpSocket> accept();
+
+    std::chrono::milliseconds time_since_last_activity() const;
 };

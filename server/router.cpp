@@ -17,8 +17,10 @@ std::string Router::error_message(Error error) const {
 
 std::string Router::success_message(nlohmann::json success) const {
     Logger& logger = Logger::instance();
-    logger.debug("response: " + success.dump());
-    return nlohmann::json({{"status", "success"}, success}).dump();
+    nlohmann::json response = {{"status", "ok"}};
+    response.update(success);
+    logger.debug("response: " + response.dump());
+    return response.dump();
 }
 
 Result<ServerMethod> Router::get_method(std::string name) const {

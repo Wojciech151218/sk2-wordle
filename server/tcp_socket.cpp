@@ -2,17 +2,26 @@
 
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <poll.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
 
-TcpSocket::TcpSocket() : socket_fd(socket(AF_INET, SOCK_STREAM, 0)) {
+#include <cerrno>
+#include <chrono>
+
+TcpSocket::TcpSocket()
+    : socket_fd(socket(AF_INET, SOCK_STREAM, 0)),
+      last_activity(std::chrono::steady_clock::now()) {
     int opt = 1;
     setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 }
 
 TcpSocket::TcpSocket(int socket_fd, const std::string& host, int port)
-    :  host(host), port(port),socket_fd(socket_fd) {
+    :  host(host),
+       port(port),
+       socket_fd(socket_fd),
+       last_activity(std::chrono::steady_clock::now()) {
     int opt = 1;
     setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
     }
@@ -90,22 +99,48 @@ Result<size_t> TcpSocket::send(const std::string& data) {
         ::send(this->socket_fd, data.c_str(), data.size(), 0), 
         "Failed to send data"
     ).finally<size_t>([&](size_t result) {
+        touch();
         return result;
     });
 
     
 }
 
-Result<std::string> TcpSocket::receive() {
+Result<std::string> TcpSocket::receive(std::optional<std::chrono::milliseconds> timeout) {
     char buffer[1024];
 
     return check_connected("Socket not connected")
-    .chain_from_bsd(
-        ::recv(this->socket_fd, buffer, 1024, 0), 
-        "Failed to receive data"
-    )
-    .finally<std::string>([&]() {
-        return std::string(buffer);
+    .chain<std::string>([&](auto) {
+        while (true) {
+            if (timeout.has_value()) {
+                struct pollfd fd;
+                fd.fd = this->socket_fd;
+                fd.events = POLLIN;
+                int poll_result = ::poll(&fd, 1, static_cast<int>(timeout->count()));
+                if (poll_result == 0) {
+                    return Result<std::string>(Error("Receive timeout"));
+                }
+                if (poll_result < 0) {
+                    if (errno == EINTR) {
+                        continue;
+                    }
+                    return Result<std::string>(Error("Failed to wait for data"));
+                }
+            }
+
+            int bytes_read = ::recv(this->socket_fd, buffer, sizeof(buffer), 0);
+            if (bytes_read < 0) {
+                if (errno == EINTR) {
+                    continue;
+                }
+                return Result<std::string>(Error("Failed to receive data"));
+            }
+            if (bytes_read == 0) {
+                return Result<std::string>(Error("Client disconnected"));
+            }
+            touch();
+            return Result<std::string>(std::string(buffer, bytes_read));
+        }
     });
 }
 
@@ -125,4 +160,14 @@ Result<TcpSocket> TcpSocket::accept() {
     .finally<TcpSocket>([&](int client_fd) {
         return TcpSocket(client_fd, this->host.value(), this->port.value());
     });
+}
+
+void TcpSocket::touch() {
+    last_activity = std::chrono::steady_clock::now();
+}
+
+std::chrono::milliseconds TcpSocket::time_since_last_activity() const {
+    return std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now() - last_activity
+    );
 }
