@@ -4,8 +4,8 @@
 #include <string>
 #include <thread>
 
-#include "logger.h"
-#include "tcp_server.h"
+#include "utils/logger.h"
+#include "server/tcp_server.h"
 using namespace std;
 
 namespace {

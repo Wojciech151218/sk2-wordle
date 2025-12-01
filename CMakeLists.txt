@@ -17,14 +17,10 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -g3 -fno-omit-frame-pointer")
 
-set(SIECI_SHARED_SOURCES
-    tcp_server.cpp
-    tcp_socket.cpp
-    tcp_client.cpp
-    thread_pool.cpp
-    Error.cpp
-    Result.cpp
-    logger.cpp
+file(GLOB SIECI_SHARED_SOURCES
+    "${CMAKE_CURRENT_SOURCE_DIR}/server/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/utils/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp"
 )
 
 add_executable(sieci_server
@@ -32,13 +28,9 @@ add_executable(sieci_server
     ${SIECI_SHARED_SOURCES}
 )
 
-add_executable(server_test
-    server_test.cpp
-    ${SIECI_SHARED_SOURCES}
-)
 
 add_executable(client_test
-    client_test.cpp
+    artifacts/client_test.cpp
     ${SIECI_SHARED_SOURCES}
 )
 

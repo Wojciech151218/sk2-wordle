@@ -1,4 +1,4 @@
-#include "tcp_socket.h"
+#include "server/tcp_socket.h"
 
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -6,10 +6,15 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-TcpSocket::TcpSocket() : socket_fd(socket(AF_INET, SOCK_STREAM, 0)) {}
+TcpSocket::TcpSocket() : socket_fd(socket(AF_INET, SOCK_STREAM, 0)) {
+    int opt = 1;
+    setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+}
 
 TcpSocket::TcpSocket(int socket_fd, const std::string& host, int port)
     :  host(host), port(port),socket_fd(socket_fd) {
+    int opt = 1;
+    setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
     }
 
 

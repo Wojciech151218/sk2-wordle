@@ -1,6 +1,5 @@
-#include "tcp_server.h"
+#include "server/tcp_server.h"
 
-#include <cstddef>
 #include <string>
 
 TcpServer::TcpServer()
@@ -10,6 +9,7 @@ TcpServer::TcpServer()
 TcpServer::~TcpServer() {
     socket.disconnect();
 }
+
 
 void TcpServer::start(int port, std::string address) {
     Logger& logger = Logger::instance();

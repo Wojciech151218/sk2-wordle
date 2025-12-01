@@ -3,12 +3,12 @@
 #include <stdexcept>
 #include <string>
 
-#include "logger.h"
-#include "tcp_server.h"
+#include "utils/logger.h"
+#include "artifacts/tcp_client.h"
 
 namespace {
 void print_usage(const char* program_name) {
-    std::cout << "Usage: " << program_name << " <address> <port> [response_message]\n";
+    std::cout << "Usage: " << program_name << " <address> <port> <message>\n";
 }
 
 int parse_port(const char* value) {
@@ -35,7 +35,7 @@ void configure_logger() {
 }  // namespace
 
 int main(int argc, char* argv[]) {
-    if (argc < 3 || argc > 4) {
+    if (argc != 4) {
         print_usage(argv[0]);
         return 1;
     }
@@ -49,26 +49,35 @@ int main(int argc, char* argv[]) {
     }
 
     std::string address = argv[1];
-    std::string response_payload = (argc == 4) ? argv[3] : "Hello, client!";
+    std::string message = argv[3];
 
     configure_logger();
     Logger& logger = Logger::instance();
-    logger.debug("Server test harness starting");
+    logger.debug("Client test harness starting");
 
-    TcpServer server;
-    server.start(port, address);
+    TcpClient client;
 
-    while (true) {
-        auto client_response = server.run(response_payload);
-        if (client_response.is_err()) {
-            logger.error(client_response.unwrap_err());
-            break;
-        }
-        logger.info("Received from client: " + client_response.unwrap());
+    auto connect_result = client.connect(address, port);
+    if (connect_result.is_err()) {
+        logger.error(connect_result.unwrap_err());
+        return 1;
     }
 
-    server.stop();
-    logger.debug("Server test harness stopped");
+    auto response = client.request(message);
+    if (response.is_err()) {
+        logger.error(response.unwrap_err());
+        client.disconnect();
+        return 1;
+    }
+
+    logger.info("Received from server: " + response.unwrap());
+
+    auto disconnect_result = client.disconnect();
+    if (disconnect_result.is_err()) {
+        logger.error(disconnect_result.unwrap_err());
+    }
+
+    logger.debug("Client test harness stopped");
     return 0;
 }
 

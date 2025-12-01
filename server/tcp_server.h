@@ -1,13 +1,13 @@
 #pragma once
 
-#include "tcp_socket.h"
-#include "Result.h"
-#include "thread_pool.h"
+#include "server/tcp_socket.h"
+#include "server/thread_pool.h"
 
 class TcpServer {
   private:
     TcpSocket socket;
     ThreadPool thread_pool;
+    //std::vector<ServerMethod> server_methods;
   public:
     TcpServer();
     ~TcpServer();
