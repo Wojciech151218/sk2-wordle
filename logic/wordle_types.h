@@ -47,6 +47,7 @@ private:
     std::vector<WordleWord> words;
     size_t max_words;
     size_t letters_per_word;
+    std::string current_word;
 
 public:
     WordleState(size_t max_words, size_t letters_per_word) : max_words(max_words), letters_per_word(letters_per_word) {}
