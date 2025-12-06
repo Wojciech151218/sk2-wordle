@@ -1,6 +1,6 @@
 #pragma once
 
-#include "utils/error.h"
+#include "server/utils/error.h"
 
 #include <functional>
 #include <optional>

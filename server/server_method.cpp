@@ -2,11 +2,19 @@
 #include "utils/result.h"
 #include <memory>
 
-ServerMethod::ServerMethod(std::string name, RequestBody * method_body, std::function<nlohmann::json(const RequestBody&)> handler)
-    : name(name), method_body(method_body), handler(handler) {}
+ServerMethod::ServerMethod(
+    std::string path,
+    HttpMethod method, 
+    RequestBody * method_body, 
+    std::function<nlohmann::json(const RequestBody&)> handler
+)
+    : path(path), method(method), method_body(method_body), handler(handler) {}
 
-std::string ServerMethod::get_name() const {
-    return name;
+std::string ServerMethod::get_path() const {
+    return path;
+}
+HttpMethod ServerMethod::get_method() const {
+    return method;
 }
 
 

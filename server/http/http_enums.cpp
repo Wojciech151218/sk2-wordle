@@ -22,3 +22,35 @@ std::string get_status_message(HttpStatusCode status_code) {
         default: return "OK";
     }
 }
+
+std::string http_version_to_string(HttpVersion http_version) {
+    switch (http_version) {
+        case HttpVersion::HTTP_1_1: return "HTTP/1.1";
+        case HttpVersion::HTTP_2_0: return "HTTP/2.0";
+        case HttpVersion::HTTP_3_0: return "HTTP/3.0";
+        default: return "HTTP/1.1";
+    }
+}
+
+std::string method_to_string(HttpMethod method) {
+    switch (method) {
+        case HttpMethod::GET: return "GET";
+        case HttpMethod::POST: return "POST";
+        case HttpMethod::PUT: return "PUT";
+        case HttpMethod::DELETE: return "DELETE";
+        case HttpMethod::PATCH: return "PATCH";
+        case HttpMethod::OPTIONS: return "OPTIONS";
+        case HttpMethod::HEAD: return "HEAD";
+        default: return "GET";
+    }
+}
+std::string status_code_to_string(HttpStatusCode status_code) {
+    switch (status_code) {
+        case HttpStatusCode::OK: return "200";
+        case HttpStatusCode::BAD_REQUEST: return "400";
+        case HttpStatusCode::NOT_FOUND: return "404";
+        case HttpStatusCode::METHOD_NOT_ALLOWED: return "405";
+        case HttpStatusCode::INTERNAL_SERVER_ERROR: return "500";
+        default: return "200";
+    }
+}

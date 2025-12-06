@@ -39,12 +39,12 @@ void TcpServer::handle_client(TcpSocket* client_socket) {
             client_socket->disconnect();
             break;
         }
+        HttpRequest http_request(request.unwrap());
 
-        auto payload = request.unwrap();
-        logger.debug("Received from client: " + payload);
-        auto response = router.handle_request(payload);
+        logger.debug("Received from client: " + http_request.to_string());
+        auto response = router.handle_request(http_request);
 
-        auto send_result = client_socket->send(response);
+        auto send_result = client_socket->send(response.to_string());
         if (send_result.is_err()) {
             logger.error(send_result.unwrap_err());
             client_socket->disconnect();

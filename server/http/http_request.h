@@ -12,6 +12,7 @@ class HttpRequest{
     std::string path;
     std::vector<HttpHeader> headers;
     std::string body;
+    HttpVersion version;
 
   public:
     HttpRequest(std::string raw_request);
@@ -20,5 +21,6 @@ class HttpRequest{
     std::string get_path() const;
     std::unordered_map<std::string, std::string> get_headers() const;
     std::string get_body() const;
+    std::string to_string() const;
 };
 

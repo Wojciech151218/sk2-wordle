@@ -1,18 +1,17 @@
 #include "server/server_method.h"
-
+#include "server/http/http_request.h"
+#include "server/http/http_response.h"
 
 class Router {
 
 private:
-    std::map<std::string, ServerMethod> methods;
-    std::string error_message(Error error) const;
-    std::string success_message(nlohmann::json success) const;
-    Result<ServerMethod> get_method(std::string name) const;
+    std::map<std::string, std::map<HttpMethod ,ServerMethod>> methods;
+    Result<ServerMethod> get_method(HttpRequest http_request) const;
   public:
     Router();
     ~Router();
 
 
     void add_method(const ServerMethod & method);
-    std::string handle_request(Result<std::string> request);
+    HttpResponse handle_request(Result<HttpRequest> request);
 };

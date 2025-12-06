@@ -10,7 +10,6 @@ class WordRequest : public RequestBody {
         WordRequest(std::string word);
         WordRequest() : RequestBody() {};
         Result<std::unique_ptr<RequestBody>> from_json(const nlohmann::json& json) override;
-        nlohmann::json validate() const override;
         std::string word;
     private:
 };

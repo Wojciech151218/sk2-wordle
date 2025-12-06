@@ -19,10 +19,8 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -g3 -fno-omit-frame-poin
 
 add_subdirectory(external/nlohmann_json)
 
-file(GLOB SIECI_SHARED_SOURCES
+file(GLOB_RECURSE SIECI_SHARED_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/server/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/utils/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/logic/*.cpp"
 )
 

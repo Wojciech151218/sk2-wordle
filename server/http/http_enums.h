@@ -26,6 +26,14 @@ enum class HttpVersion{
   HTTP_3_0,
 };
 
+
+std::string http_version_to_string(HttpVersion http_version);
+
 // Parse HTTP method from string
 HttpMethod parse_method(const std::string& method_str);
 
+std::string get_status_message(HttpStatusCode status_code);
+
+std::string status_code_to_string(HttpStatusCode status_code);
+
+std::string method_to_string(HttpMethod method);

@@ -76,3 +76,15 @@ std::string HttpRequest::get_body() const {
     return body;
 }
 
+std::string HttpRequest::to_string() const {
+    std::stringstream request_stream;
+    request_stream 
+        << method_to_string(method) << " " 
+        << path << " " 
+        << http_version_to_string(version) << "\r\n";
+    for (const auto& header : headers) {
+        request_stream << header.get_name() << ": " << header.get_value() << "\r\n";
+    }
+    request_stream << "\r\n" << body;
+    return request_stream.str();
+}

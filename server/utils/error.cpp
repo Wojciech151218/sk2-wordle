@@ -1,4 +1,4 @@
-#include "utils/error.h"
+#include "server/utils/error.h"
 
 #include <cerrno>
 #include <cstdlib>
@@ -8,8 +8,8 @@
 #include <utility>
 #include <optional>
 
-Error::Error(std::string message, std::optional<int> status_code = std::nullopt) 
-    : message(std::move(message)), status_code(std::move(status_code)) {}
+Error::Error(std::string message, HttpStatusCode http_status_code) 
+    : message(std::move(message)), http_status_code(http_status_code) {}
 
 const std::string& Error::get_message() const {
     return message;
@@ -23,6 +23,6 @@ void Error::handle_error(bool should_exit) const {
     throw std::runtime_error(message);
 }
 
-std::optional<HttpStatusCode> Error::get_http_status_code() const {
+HttpStatusCode Error::get_http_status_code() const {
     return http_status_code;
 }
