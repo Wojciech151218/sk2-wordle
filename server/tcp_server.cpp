@@ -44,6 +44,8 @@ void TcpServer::handle_client(TcpSocket* client_socket) {
         logger.debug("Received from client: " + http_request.to_string());
         auto response = router.handle_request(http_request);
 
+        logger.debug("Sending response to client: " + response.to_string());
+
         auto send_result = client_socket->send(response.to_string());
         if (send_result.is_err()) {
             logger.error(send_result.unwrap_err());
