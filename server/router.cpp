@@ -25,7 +25,19 @@ Result<ServerMethod> Router::get_method(const HttpRequest& http_request) const {
     return Result<ServerMethod>(method_it->second);
 }
 
-HttpResponse Router::cors_response(const HttpRequest& request) {
+std::vector<HttpMethod> Router::get_allowed_methods(const std::string& path) const {
+    const auto path_it = methods.find(path);
+    if (path_it == methods.end()) {
+        return std::vector<HttpMethod>();
+    }
+    std::vector<HttpMethod> allowed_methods;
+    for (const auto& method : path_it->second) {
+        allowed_methods.push_back(method.first);
+    }
+    return allowed_methods;
+}
+
+HttpResponse Router::option_response(const HttpRequest& request) {
     const std::string path = request.get_path();
     const auto path_it = methods.find(path);
     if (path_it == methods.end()) {
@@ -49,7 +61,7 @@ HttpResponse Router::handle_request(Result<HttpRequest> request) {
     HttpRequest http_request = request.unwrap();
 
     if (http_request.get_method() == HttpMethod::OPTIONS) {
-        return cors_response(http_request);
+        return option_response(http_request);
     }
 
     nlohmann::json request_body;

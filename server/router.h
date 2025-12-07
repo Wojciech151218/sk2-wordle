@@ -14,5 +14,6 @@ private:
 
     void add_method(const ServerMethod & method);
     HttpResponse handle_request(Result<HttpRequest> request);
-    HttpResponse cors_response(const HttpRequest& request);
+    HttpResponse option_response(const HttpRequest& request);
+    std::vector<HttpMethod> get_allowed_methods(const std::string& path) const;
 };

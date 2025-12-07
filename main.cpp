@@ -6,6 +6,7 @@
 #include "server/utils/logger.h"
 #include "server/tcp_server.h"
 #include "logic/word_method.h"
+#include "server/utils/config.h"
 
 using namespace std;
 
@@ -25,6 +26,10 @@ int main(int argc, char* argv[]) {
 
     std::string address = argv[1];
     int port = atoi(argv[2]);
+
+
+    Config& config = Config::instance();
+    config.set_allowed_origin("http://localhost:5173");
 
     Logger& logger = Logger::instance();
     Logger::Options options{};

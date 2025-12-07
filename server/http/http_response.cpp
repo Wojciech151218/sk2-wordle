@@ -1,5 +1,6 @@
 #include "server/http/http_response.h"
 #include "server/http/http_enums.h"
+#include "server/utils/config.h"
 #include <sstream>
 
 HttpResponse::HttpResponse(std::optional<std::string> body, HttpVersion http_version, HttpStatusCode status_code)
@@ -21,7 +22,8 @@ HttpResponse HttpResponse::from_json(Result<nlohmann::json> json) {
             status
         )
         .add_header(HttpHeader::content_type("application/json"))
-        .add_header(HttpHeader::content_length(error_message));
+        .add_header(HttpHeader::content_length(error_message))
+        .add_cors_headers();
     }
     
     std::string response_body = json.unwrap().dump();
@@ -31,7 +33,8 @@ HttpResponse HttpResponse::from_json(Result<nlohmann::json> json) {
         HttpStatusCode::OK
     )
     .add_header(HttpHeader::content_type("application/json"))
-    .add_header(HttpHeader::content_length(response_body));
+    .add_header(HttpHeader::content_length(response_body))
+    .add_cors_headers();
 }
 
 HttpResponse HttpResponse::add_header(const HttpHeader& header) {
@@ -53,29 +56,34 @@ std::string HttpResponse::to_string() const {
     return response_stream.str();
 }
 
-HttpResponse HttpResponse::add_cors_headers(std::vector<HttpMethod> allowed_methods) {
-    std::string allowed_methods_string = "";
-    for (const auto& method : allowed_methods) {
-        allowed_methods_string += method_to_string(method) + ", ";
-    }
-    allowed_methods_string = allowed_methods_string.substr(0, allowed_methods_string.size() - 2);
+HttpResponse HttpResponse::add_cors_headers() {
     
-    add_header(HttpHeader("Access-Control-Allow-Origin", "*"));
-    add_header(HttpHeader("Access-Control-Allow-Methods", allowed_methods_string));
+    Config& config = Config::instance();
+    std::string allowed_origin = config.get_allowed_origin();
+
+    add_header(HttpHeader("Access-Control-Allow-Origin", allowed_origin));
     add_header(HttpHeader("Access-Control-Allow-Headers", "Content-Type"));
     add_header(HttpHeader("Access-Control-Allow-Credentials", "true"));
     add_header(HttpHeader("Access-Control-Max-Age", "86400"));
     add_header(HttpHeader("Access-Control-Expose-Headers", "Content-Type"));
+    add_header(HttpHeader("Connection", "keep-alive"));
+    add_header(HttpHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE, PATCH"));
 
     return *this;
 }
 
 HttpResponse HttpResponse::option_response(std::vector<HttpMethod> allowed_methods) {
-    ;
+    std::string allowed_methods_string = "";
+    for (const auto& method : allowed_methods) {
+        allowed_methods_string += method_to_string(method) + ", ";
+    }
+    allowed_methods_string = allowed_methods_string.substr(0, allowed_methods_string.size() - 2);
+
     return HttpResponse(
         std::nullopt,
         HttpVersion::HTTP_1_1,
         HttpStatusCode::NO_CONTENT
     )
-    .add_cors_headers(allowed_methods);
+    .add_cors_headers()
+    .add_header(HttpHeader("Allow", allowed_methods_string));
 }
