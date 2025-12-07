@@ -5,6 +5,7 @@
 #include <chrono>
 #include <iomanip>
 #include <iostream>
+#include <mutex>
 #include <sstream>
 #include <string>
 
@@ -50,6 +51,7 @@ class Logger {
     std::ostream& out_stream;
     std::ostream& err_stream;
     Options options;
+    mutable std::mutex mutex;
 
     Logger();
     Logger(std::ostream& out_stream, std::ostream& err_stream, Options options);

@@ -5,6 +5,7 @@
 #include <cstring>
 #include <ctime>
 #include <iomanip>
+#include <mutex>
 #include <sstream>
 #include <utility>
 
@@ -26,6 +27,7 @@ Logger::Logger(std::ostream& out_stream, std::ostream& err_stream, Options optio
     : out_stream(out_stream), err_stream(err_stream), options(std::move(options)) {}
 
 void Logger::set_level_enabled(Level level, bool enabled) {
+    std::lock_guard<std::mutex> lock(mutex);
     switch (level) {
         case Level::Info:
             options.info_enabled = enabled;
@@ -48,30 +50,37 @@ void Logger::disable(Level level) {
 }
 
 bool Logger::is_level_enabled(Level level) const {
+    std::lock_guard<std::mutex> lock(mutex);
     return level_enabled(level);
 }
 
 void Logger::set_use_colors(bool enabled) {
+    std::lock_guard<std::mutex> lock(mutex);
     options.use_colors = enabled;
 }
 
 bool Logger::uses_colors() const {
+    std::lock_guard<std::mutex> lock(mutex);
     return options.use_colors;
 }
 
 void Logger::set_use_timestamps(bool enabled) {
+    std::lock_guard<std::mutex> lock(mutex);
     options.use_timestamps = enabled;
 }
 
 bool Logger::uses_timestamps() const {
+    std::lock_guard<std::mutex> lock(mutex);
     return options.use_timestamps;
 }
 
 void Logger::configure(const Options& new_options) {
+    std::lock_guard<std::mutex> lock(mutex);
     options = new_options;
 }
 
 Logger::Options Logger::current_options() const {
+    std::lock_guard<std::mutex> lock(mutex);
     return options;
 }
 
@@ -91,6 +100,7 @@ void Logger::error(const Error& error) const {
 }
 
 void Logger::log(Level level, const std::string& message) const {
+    std::lock_guard<std::mutex> lock(mutex);
     if (!level_enabled(level)) {
         return;
     }
