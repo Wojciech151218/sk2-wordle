@@ -1,11 +1,12 @@
 import { useCallback, useState } from 'react';
+import axios from 'axios';
 import type {
   ConnectionStatus,
   WordlePayload,
 } from '../types/wordle';
 
 const API_URL =
-  import.meta.env.VITE_API_URL ?? 'http://localhost:5174/api';
+  import.meta.env.VITE_API_URL ?? 'http://localhost:8080';
 
 export type UseWordleApiResult = {
   gameState: WordlePayload | null;
@@ -29,32 +30,26 @@ export const useWordleApi = (): UseWordleApiResult => {
       setConnectionStatus('connecting');
 
       try {
-        const url = new URL(API_URL);
-        url.searchParams.set('method', 'word');
-        url.searchParams.set('word', word);
+        const response = await axios.post<WordlePayload>(
+          `${API_URL}/word`,
+          { word },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          }
+        );
 
-        const response = await fetch(url.toString(), {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({
-            error: 'Unknown error',
-            message: `HTTP ${response.status}`,
-          }));
-          throw new Error(errorData.message || errorData.error || 'Request failed');
-        }
-
-        const data = (await response.json()) as WordlePayload;
-        setGameState(data);
+        setGameState(response.data);
         setConnectionStatus('open');
         setLastError(null);
       } catch (error) {
         const message =
-          error instanceof Error ? error.message : 'Unknown error';
+          axios.isAxiosError(error) && error.response?.data
+            ? error.response.data.message || error.response.data.error || error.message
+            : error instanceof Error
+            ? error.message
+            : 'Unknown error';
         setLastError(message);
         setConnectionStatus('error');
       } finally {

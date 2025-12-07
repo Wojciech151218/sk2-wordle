@@ -14,6 +14,7 @@ HttpRequest::HttpRequest(std::string raw_request) {
         if (request_line >> method_str >> path_str >> version_str) {
             method = parse_method(method_str);
             path = path_str;
+            version = parse_version(version_str);
         }
     }
     
@@ -44,6 +45,7 @@ HttpRequest::HttpRequest(std::string raw_request) {
             headers.emplace_back(header_name, header_value);
         }
     }
+    if(!has_body(method)) return;
     
     // Parse body (remaining content)
     std::ostringstream body_stream;

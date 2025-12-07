@@ -12,19 +12,31 @@ void Router::add_method(const ServerMethod & method) {
 }
 
 
-Result<ServerMethod> Router::get_method(HttpRequest http_request) const {
-    auto path_it = methods.find(http_request.get_path());
+Result<ServerMethod> Router::get_method(const HttpRequest& http_request) const {
+    const auto path_it = methods.find(http_request.get_path());
     if (path_it == methods.end()) {
         return Result<ServerMethod>(Error("Path not found", HttpStatusCode::NOT_FOUND));
     }
     
-    auto method = path_it->second.find(http_request.get_method());
-    if (method == path_it->second.end()) {
-        return Result<ServerMethod>(Error("Method not found", HttpStatusCode::NOT_FOUND));
+    const auto method_it = path_it->second.find(http_request.get_method());
+    if (method_it == path_it->second.end()) {
+        return Result<ServerMethod>(Error("Method not allowed for this path", HttpStatusCode::METHOD_NOT_ALLOWED));
     }   
-    return Result<ServerMethod>(method->second);
+    return Result<ServerMethod>(method_it->second);
 }
 
+HttpResponse Router::cors_response(const HttpRequest& request) {
+    const std::string path = request.get_path();
+    const auto path_it = methods.find(path);
+    if (path_it == methods.end()) {
+        return HttpResponse::option_response(std::vector<HttpMethod>());
+    }
+    std::vector<HttpMethod> allowed_methods;
+    for (const auto& method : path_it->second) {
+        allowed_methods.push_back(method.first);
+    }
+    return HttpResponse::option_response(allowed_methods);
+}
 
 HttpResponse Router::handle_request(Result<HttpRequest> request) {
 
@@ -35,6 +47,10 @@ HttpResponse Router::handle_request(Result<HttpRequest> request) {
     }
 
     HttpRequest http_request = request.unwrap();
+
+    if (http_request.get_method() == HttpMethod::OPTIONS) {
+        return cors_response(http_request);
+    }
 
     nlohmann::json request_body;
     try {

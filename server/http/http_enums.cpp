@@ -19,8 +19,15 @@ std::string get_status_message(HttpStatusCode status_code) {
         case HttpStatusCode::NOT_FOUND: return "Not Found";
         case HttpStatusCode::METHOD_NOT_ALLOWED: return "Method Not Allowed";
         case HttpStatusCode::INTERNAL_SERVER_ERROR: return "Internal Server Error";
+        case HttpStatusCode::NO_CONTENT: return "No Content";
         default: return "OK";
     }
+}
+HttpVersion parse_version(const std::string& version_str) {
+    if (version_str == "HTTP/1.1") return HttpVersion::HTTP_1_1;
+    if (version_str == "HTTP/2.0") return HttpVersion::HTTP_2_0;
+    if (version_str == "HTTP/3.0") return HttpVersion::HTTP_3_0;
+    return HttpVersion::HTTP_1_1;
 }
 
 std::string http_version_to_string(HttpVersion http_version) {
@@ -51,6 +58,20 @@ std::string status_code_to_string(HttpStatusCode status_code) {
         case HttpStatusCode::NOT_FOUND: return "404";
         case HttpStatusCode::METHOD_NOT_ALLOWED: return "405";
         case HttpStatusCode::INTERNAL_SERVER_ERROR: return "500";
+        case HttpStatusCode::NO_CONTENT: return "204";
         default: return "200";
     }
+}
+
+bool has_body(HttpMethod method) {
+    switch (method) {
+        case HttpMethod::POST:
+        case HttpMethod::PUT:
+        case HttpMethod::PATCH:
+        case HttpMethod::DELETE:
+        case HttpMethod::OPTIONS:
+        case HttpMethod::HEAD:
+        return true;
+    }
+    return false;
 }

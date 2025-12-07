@@ -2,7 +2,10 @@
 
 #include "server/utils/error.h"
 
+#include <chrono>
+#include <iomanip>
 #include <iostream>
+#include <sstream>
 #include <string>
 
 class Logger {
@@ -14,6 +17,7 @@ class Logger {
         bool debug_enabled = true;
         bool error_enabled = true;
         bool use_colors = true;
+        bool use_timestamps = true;
     };
 
     static Logger& instance();
@@ -30,6 +34,9 @@ class Logger {
 
     void set_use_colors(bool enabled);
     bool uses_colors() const;
+
+    void set_use_timestamps(bool enabled);
+    bool uses_timestamps() const;
 
     void configure(const Options& options);
     Options current_options() const;
@@ -50,6 +57,7 @@ class Logger {
     bool level_enabled(Level level) const;
     const char* level_name(Level level) const;
     const char* level_color(Level level) const;
+    std::string format_timestamp() const;
     void write(Level level, const std::string& message) const;
 };
 

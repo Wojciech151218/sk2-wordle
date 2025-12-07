@@ -6,7 +6,7 @@ class Router {
 
 private:
     std::map<std::string, std::map<HttpMethod ,ServerMethod>> methods;
-    Result<ServerMethod> get_method(HttpRequest http_request) const;
+    Result<ServerMethod> get_method(const HttpRequest& http_request) const;
   public:
     Router();
     ~Router();
@@ -14,4 +14,5 @@ private:
 
     void add_method(const ServerMethod & method);
     HttpResponse handle_request(Result<HttpRequest> request);
+    HttpResponse cors_response(const HttpRequest& request);
 };

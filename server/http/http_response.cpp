@@ -2,7 +2,7 @@
 #include "server/http/http_enums.h"
 #include <sstream>
 
-HttpResponse::HttpResponse(std::string body, HttpVersion http_version, HttpStatusCode status_code)
+HttpResponse::HttpResponse(std::optional<std::string> body, HttpVersion http_version, HttpStatusCode status_code)
     : body(std::move(body)), http_version(http_version), status_code(status_code) {
         status_message = get_status_message(status_code);
         
@@ -49,6 +49,33 @@ std::string HttpResponse::to_string() const {
     for (const auto& header : headers) {
         response_stream << header.get_name() << ": " << header.get_value() << "\r\n";
     }
-    response_stream << "\r\n" << body;
+    response_stream << "\r\n" << body.value_or("");
     return response_stream.str();
+}
+
+HttpResponse HttpResponse::add_cors_headers(std::vector<HttpMethod> allowed_methods) {
+    std::string allowed_methods_string = "";
+    for (const auto& method : allowed_methods) {
+        allowed_methods_string += method_to_string(method) + ", ";
+    }
+    allowed_methods_string = allowed_methods_string.substr(0, allowed_methods_string.size() - 2);
+    
+    add_header(HttpHeader("Access-Control-Allow-Origin", "*"));
+    add_header(HttpHeader("Access-Control-Allow-Methods", allowed_methods_string));
+    add_header(HttpHeader("Access-Control-Allow-Headers", "Content-Type"));
+    add_header(HttpHeader("Access-Control-Allow-Credentials", "true"));
+    add_header(HttpHeader("Access-Control-Max-Age", "86400"));
+    add_header(HttpHeader("Access-Control-Expose-Headers", "Content-Type"));
+
+    return *this;
+}
+
+HttpResponse HttpResponse::option_response(std::vector<HttpMethod> allowed_methods) {
+    ;
+    return HttpResponse(
+        std::nullopt,
+        HttpVersion::HTTP_1_1,
+        HttpStatusCode::NO_CONTENT
+    )
+    .add_cors_headers(allowed_methods);
 }

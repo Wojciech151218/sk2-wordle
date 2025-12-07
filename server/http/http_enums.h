@@ -12,12 +12,15 @@ enum class HttpMethod{
   HEAD,
 };
 
+bool has_body(HttpMethod method);
+
 enum class HttpStatusCode{
   OK = 200, 
   BAD_REQUEST = 400,
   NOT_FOUND = 404,
   METHOD_NOT_ALLOWED = 405,
   INTERNAL_SERVER_ERROR = 500,
+  NO_CONTENT = 204,
 };
 
 enum class HttpVersion{
@@ -37,3 +40,5 @@ std::string get_status_message(HttpStatusCode status_code);
 std::string status_code_to_string(HttpStatusCode status_code);
 
 std::string method_to_string(HttpMethod method);
+
+HttpVersion parse_version(const std::string& version_str);

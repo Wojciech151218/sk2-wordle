@@ -4,7 +4,7 @@
 
 WordleState wordle_state = WordleState(6,5);
 
-ServerMethod word_method = ServerMethod("/word", HttpMethod::GET, new WordRequest(), 
+ServerMethod word_method = ServerMethod("/word", HttpMethod::POST, new WordRequest(), 
 [](const RequestBody& request) {
     auto word = dynamic_cast<const WordRequest&>(request).word;
     wordle_state.add_word(WordleWord::get_random_colors(word));

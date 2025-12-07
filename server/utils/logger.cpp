@@ -1,7 +1,11 @@
 #include "server/utils/logger.h"
 
 #include <cerrno>
+#include <chrono>
 #include <cstring>
+#include <ctime>
+#include <iomanip>
+#include <sstream>
 #include <utility>
 
 namespace {
@@ -53,6 +57,14 @@ void Logger::set_use_colors(bool enabled) {
 
 bool Logger::uses_colors() const {
     return options.use_colors;
+}
+
+void Logger::set_use_timestamps(bool enabled) {
+    options.use_timestamps = enabled;
+}
+
+bool Logger::uses_timestamps() const {
+    return options.use_timestamps;
 }
 
 void Logger::configure(const Options& new_options) {
@@ -121,12 +133,29 @@ const char* Logger::level_color(Level level) const {
     return COLOR_RESET;
 }
 
+std::string Logger::format_timestamp() const {
+    auto now = std::chrono::system_clock::now();
+    auto time_t = std::chrono::system_clock::to_time_t(now);
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+                  now.time_since_epoch()) %
+              1000;
+
+    std::stringstream ss;
+    ss << std::put_time(std::localtime(&time_t), "%Y-%m-%d %H:%M:%S");
+    ss << '.' << std::setfill('0') << std::setw(3) << ms.count();
+    return ss.str();
+}
+
 void Logger::write(Level level, const std::string& message) const {
     std::ostream& stream = (level == Level::Error) ? err_stream : out_stream;
     if (options.use_colors) {
         stream << level_color(level);
     }
-    stream << "[" << level_name(level) << "] " << message;
+    stream << "[";
+    if (options.use_timestamps) {
+        stream << format_timestamp() << " ";
+    }
+    stream << level_name(level) << "] " << message;
     if (options.use_colors) {
         stream << COLOR_RESET;
     }

@@ -13,13 +13,15 @@ class HttpResponse{
     HttpStatusCode status_code;
     std::string status_message;
     std::vector<HttpHeader> headers;
-    std::string body;
+    std::optional<std::string> body;
 
   public:
-    HttpResponse(std::string body, HttpVersion http_version, HttpStatusCode status_code);
+    HttpResponse(std::optional<std::string> body, HttpVersion http_version, HttpStatusCode status_code);
     static HttpResponse from_json(Result<nlohmann::json> json);
     HttpResponse add_header(const HttpHeader& header);
+    HttpResponse add_cors_headers(std::vector<HttpMethod> allowed_methods);
     std::string to_string() const;
+    static HttpResponse option_response(std::vector<HttpMethod> allowed_methods);
 
 
 };

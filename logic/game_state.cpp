@@ -85,7 +85,7 @@ void GameState::end_game() {
     is_game_running = false;  // Zatrzymujemy grę
     round = 0;  // Resetujemy numer rundy
     for (auto& player : players_list) {
-        player.errors = 0;  // Resetujemy liczbę błędów
+        player.all_errors = 0;  // Resetujemy liczbę błędów
         player.is_active = true;  // Ustawiamy gracza jako aktywnego
         player.is_alive = true;  // Ustawiamy gracza jako żywego
     }
