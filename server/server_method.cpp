@@ -6,9 +6,9 @@ ServerMethod::ServerMethod(
     std::string path,
     HttpMethod method, 
     RequestBody * method_body, 
-    std::function<nlohmann::json(const RequestBody&)> handler
+    std::function<Result<nlohmann::json>(const RequestBody&)> handler
 )
-    : path(path), method(method), method_body(method_body), handler(handler) {}
+    : path(path), method(method), method_body(method_body), handler(std::move(handler)) {}
 
 std::string ServerMethod::get_path() const {
     return path;
@@ -30,5 +30,5 @@ Result<nlohmann::json> ServerMethod::handle_request(nlohmann::json request) cons
 
     auto handle_result = handler(*request_body);
 
-    return Result<nlohmann::json>(handle_result);
+    return handle_result;
 }

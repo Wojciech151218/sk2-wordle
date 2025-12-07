@@ -8,5 +8,7 @@ ServerMethod word_method = ServerMethod("/word", HttpMethod::POST, new WordReque
 [](const RequestBody& request) {
     auto word = dynamic_cast<const WordRequest&>(request).word;
     wordle_state.add_word(WordleWord::get_random_colors(word));
-    return nlohmann::json(wordle_state);
+
+    return Error("heszke w meszke", HttpStatusCode::INTERNAL_SERVER_ERROR);
+    //return nlohmann::json(wordle_state);
 });

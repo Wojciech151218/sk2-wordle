@@ -11,12 +11,12 @@ class ServerMethod {
     std::string path;
     HttpMethod method;
     RequestBody * method_body;
-    std::function<nlohmann::json(const RequestBody&)> handler;
+    std::function<Result<nlohmann::json>(const RequestBody&)> handler;
 
     
 
   public:
-    ServerMethod(std::string path, HttpMethod method, RequestBody * method_body, std::function<nlohmann::json(const RequestBody&)> handler);
+    ServerMethod(std::string path, HttpMethod method, RequestBody * method_body, std::function<Result<nlohmann::json>(const RequestBody&)> handler);
     std::string get_path() const;
     HttpMethod get_method() const;
     Result<nlohmann::json> handle_request(nlohmann::json request) const;
