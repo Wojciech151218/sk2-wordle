@@ -45,7 +45,6 @@ HttpRequest::HttpRequest(std::string raw_request) {
             headers.emplace_back(header_name, header_value);
         }
     }
-    if(!has_body(method)) return;
     
     // Parse body (remaining content)
     std::ostringstream body_stream;

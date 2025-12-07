@@ -63,15 +63,4 @@ std::string status_code_to_string(HttpStatusCode status_code) {
     }
 }
 
-bool has_body(HttpMethod method) {
-    switch (method) {
-        case HttpMethod::POST:
-        case HttpMethod::PUT:
-        case HttpMethod::PATCH:
-        case HttpMethod::DELETE:
-        case HttpMethod::OPTIONS:
-        case HttpMethod::HEAD:
-        return true;
-    }
-    return false;
-}
+
