@@ -5,8 +5,8 @@
 #include <cstring>
 #include <ctime>
 #include <iomanip>
-#include <mutex>
 #include <sstream>
+#include <thread>
 #include <utility>
 
 namespace {
@@ -16,29 +16,25 @@ constexpr const char* COLOR_DEBUG = "\033[36m";
 constexpr const char* COLOR_ERROR = "\033[31m";
 }  // namespace
 
-Logger& Logger::instance() {
-    static Logger logger_instance;
-    return logger_instance;
-}
-
 Logger::Logger() : Logger(std::cout, std::cerr, Options{}) {}
 
 Logger::Logger(std::ostream& out_stream, std::ostream& err_stream, Options options)
     : out_stream(out_stream), err_stream(err_stream), options(std::move(options)) {}
 
 void Logger::set_level_enabled(Level level, bool enabled) {
-    std::lock_guard<std::mutex> lock(mutex);
-    switch (level) {
-        case Level::Info:
-            options.info_enabled = enabled;
-            break;
-        case Level::Debug:
-            options.debug_enabled = enabled;
-            break;
-        case Level::Error:
-            options.error_enabled = enabled;
-            break;
-    }
+    atomic([&]() {
+        switch (level) {
+            case Level::Info:
+                options.info_enabled = enabled;
+                break;
+            case Level::Debug:
+                options.debug_enabled = enabled;
+                break;
+            case Level::Error:
+                options.error_enabled = enabled;
+                break;
+        }
+    });
 }
 
 void Logger::enable(Level level) {
@@ -50,38 +46,45 @@ void Logger::disable(Level level) {
 }
 
 bool Logger::is_level_enabled(Level level) const {
-    std::lock_guard<std::mutex> lock(mutex);
-    return level_enabled(level);
+    return atomic([&]() {
+        return level_enabled(level);
+    });
 }
 
 void Logger::set_use_colors(bool enabled) {
-    std::lock_guard<std::mutex> lock(mutex);
-    options.use_colors = enabled;
+    atomic([&]() {
+        options.use_colors = enabled;
+    });
 }
 
 bool Logger::uses_colors() const {
-    std::lock_guard<std::mutex> lock(mutex);
-    return options.use_colors;
+    return atomic([&]() {
+        return options.use_colors;
+    });
 }
 
 void Logger::set_use_timestamps(bool enabled) {
-    std::lock_guard<std::mutex> lock(mutex);
-    options.use_timestamps = enabled;
+    atomic([&]() {
+        options.use_timestamps = enabled;
+    });
 }
 
 bool Logger::uses_timestamps() const {
-    std::lock_guard<std::mutex> lock(mutex);
-    return options.use_timestamps;
+    return atomic([&]() {
+        return options.use_timestamps;
+    });
 }
 
 void Logger::configure(const Options& new_options) {
-    std::lock_guard<std::mutex> lock(mutex);
-    options = new_options;
+    atomic([&]() {
+        options = new_options;
+    });
 }
 
 Logger::Options Logger::current_options() const {
-    std::lock_guard<std::mutex> lock(mutex);
-    return options;
+    return atomic([&]() {
+        return options;
+    });
 }
 
 void Logger::info(const std::string& message) const {
@@ -100,11 +103,12 @@ void Logger::error(const Error& error) const {
 }
 
 void Logger::log(Level level, const std::string& message) const {
-    std::lock_guard<std::mutex> lock(mutex);
-    if (!level_enabled(level)) {
-        return;
-    }
-    write(level, message);
+    atomic([&]() {
+        if (!level_enabled(level)) {
+            return;
+        }
+        write(level, message);
+    });
 }
 
 bool Logger::level_enabled(Level level) const {
@@ -122,7 +126,7 @@ bool Logger::level_enabled(Level level) const {
 const char* Logger::level_name(Level level) const {
     switch (level) {
         case Level::Info:
-            return "INFO";
+            return "INFO ";
         case Level::Debug:
             return "DEBUG";
         case Level::Error:
@@ -165,7 +169,7 @@ void Logger::write(Level level, const std::string& message) const {
     if (options.use_timestamps) {
         stream << format_timestamp() << " ";
     }
-    stream << level_name(level) << "] " << message;
+    stream << level_name(level) << " thread :" << std::this_thread::get_id() << "] " << message;
     if (options.use_colors) {
         stream << COLOR_RESET;
     }

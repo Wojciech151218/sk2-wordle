@@ -1,15 +1,15 @@
 #pragma once
 
 #include "server/utils/error.h"
+#include "server/utils/global_state.h"
 
 #include <chrono>
 #include <iomanip>
 #include <iostream>
-#include <mutex>
 #include <sstream>
 #include <string>
 
-class Logger {
+class Logger : public GlobalState<Logger> {
   public:
     enum class Level { Info, Debug, Error };
 
@@ -20,13 +20,6 @@ class Logger {
         bool use_colors = true;
         bool use_timestamps = true;
     };
-
-    static Logger& instance();
-
-    Logger(const Logger&) = delete;
-    Logger& operator=(const Logger&) = delete;
-    Logger(Logger&&) = delete;
-    Logger& operator=(Logger&&) = delete;
 
     void set_level_enabled(Level level, bool enabled);
     void enable(Level level);
@@ -51,10 +44,10 @@ class Logger {
     std::ostream& out_stream;
     std::ostream& err_stream;
     Options options;
-    mutable std::mutex mutex;
 
     Logger();
     Logger(std::ostream& out_stream, std::ostream& err_stream, Options options);
+    friend class GlobalState<Logger>;
 
     bool level_enabled(Level level) const;
     const char* level_name(Level level) const;
