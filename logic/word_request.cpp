@@ -3,14 +3,13 @@
 WordRequest::WordRequest(std::string word) : RequestBody(), word(word) {
 }
 
-Result<std::unique_ptr<RequestBody>> WordRequest::from_json(const nlohmann::json& json) {
+Result<std::unique_ptr<RequestBody>> WordRequest::validate(const nlohmann::json& json) {
     if (!json.contains("word")) {
-        return Result<std::unique_ptr<RequestBody>>(Error("Word field is missing", HttpStatusCode::BAD_REQUEST));
+        return Error("Word field is missing", HttpStatusCode::BAD_REQUEST);
     }
     
 
     return Result<std::unique_ptr<RequestBody>>(
-        std::make_unique<WordRequest>(
-            json["word"].get<std::string>()
-            ));
+        std::make_unique<WordRequest>(json["word"].get<std::string>())
+    );
 }

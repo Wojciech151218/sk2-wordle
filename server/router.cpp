@@ -64,16 +64,6 @@ HttpResponse Router::handle_request(Result<HttpRequest> request) {
         return option_response(http_request);
     }
 
-    nlohmann::json request_body;
-    try {
-        request_body = nlohmann::json::parse(http_request.get_body());
-    } catch (const nlohmann::json::parse_error& e) {
-        return HttpResponse::from_json(
-            Result<nlohmann::json>(Error("Invalid JSON format", HttpStatusCode::BAD_REQUEST))
-        );
-    }
-
-
     auto method_result = get_method(http_request);
     if (method_result.is_err()) {
         return HttpResponse::from_json(
@@ -82,6 +72,6 @@ HttpResponse Router::handle_request(Result<HttpRequest> request) {
     }
 
     auto method = method_result.unwrap();   
-    auto response = method.handle_request(request_body);
+    auto response = method.handle_request(http_request.get_body());
     return HttpResponse::from_json(response);
 }

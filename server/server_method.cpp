@@ -19,9 +19,19 @@ HttpMethod ServerMethod::get_method() const {
 
 
 
-Result<nlohmann::json> ServerMethod::handle_request(nlohmann::json request) const {
+Result<nlohmann::json> ServerMethod::handle_request(std::string raw_body) const {
 
-    auto parse_result = method_body->from_json(request);
+    nlohmann::json json_body;
+    try {
+        json_body = nlohmann::json::parse(raw_body);
+    } catch (const nlohmann::json::parse_error& e) {
+        return Result<nlohmann::json>(Error(
+            "Invalid JSON format: " + std::string(e.what()), 
+            HttpStatusCode::BAD_REQUEST)
+        );
+    }
+
+    auto parse_result = method_body->validate(json_body);
     if (parse_result.is_err()) {
         return Result<nlohmann::json>(parse_result.unwrap_err());
     }
