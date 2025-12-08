@@ -1,3 +1,2 @@
 naprawic TcpSocket::receive zeby poprawnie obslugiwalo wiadomsci wieksze od bufora
-ulepszyc logger / dodac warny i do requestow kto wyslal zadanie
 ogarnac klienta
