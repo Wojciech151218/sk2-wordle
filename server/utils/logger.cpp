@@ -176,13 +176,14 @@ void Logger::write(Level level, const std::string& message) const {
     if (options.use_colors) {
         stream << level_color(level);
     }
-    stream << "["  << level_name(level);
+    stream << "["  << level_name(level) << " ";
 
     if (options.use_timestamps) {
-        stream << format_timestamp() << " ";
+        stream << format_timestamp();
     }
     stream << "] ";
     stream << thread_info();
+    stream << " " << message;
     if (options.use_colors) {
         stream << COLOR_RESET;
     }
