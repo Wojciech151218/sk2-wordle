@@ -31,7 +31,7 @@ Result<int> TcpSocket::check_connected(std::string message) const {
     return Result<int>::from_bsd(
         socket_fd,
         message
-    );
+    ).log_error<int>();
 }
 
 Result<TcpSocket> TcpSocket::listen(const std::string& host, int port, int max_connections) {
@@ -123,7 +123,7 @@ Result<std::string> TcpSocket::receive(std::optional<std::chrono::milliseconds> 
                 int poll_result = ::poll(&fd, 1, static_cast<int>(timeout->count()));
                 if (poll_result == 0) {
                     return Result<std::string>(Error("Receive timeout"))
-                        .log_debug<std::string>();
+                        .log_warn<std::string>();
                 }
                 if (poll_result < 0) {
                     if (errno == EINTR) {
@@ -144,7 +144,7 @@ Result<std::string> TcpSocket::receive(std::optional<std::chrono::milliseconds> 
             }
             if (bytes_read == 0) {
                 return Result<std::string>(Error("Client disconnected"))
-                    .log_debug<std::string>();
+                    .log_warn<std::string>();
             }
             touch();
             return Result<std::string>(std::string(buffer, bytes_read));
@@ -166,7 +166,7 @@ Result<TcpSocket> TcpSocket::accept() {
         "Failed to accept socket"
     )
     .finally<TcpSocket>([&](int client_fd) {
-        return TcpSocket(client_fd, this->host.value(), this->port.value());
+        return TcpSocket(client_fd, inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
     });
 }
 
@@ -178,4 +178,12 @@ std::chrono::milliseconds TcpSocket::time_since_last_activity() const {
     return std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::steady_clock::now() - last_activity
     );
+}
+
+std::optional<std::string> TcpSocket::get_host() const {
+    return host;
+}
+
+std::optional<int> TcpSocket::get_port() const {
+    return port;
 }

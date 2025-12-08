@@ -18,6 +18,7 @@ constexpr const char* COLOR_RESET = "\033[0m";
 constexpr const char* COLOR_INFO = "\033[32m";
 constexpr const char* COLOR_DEBUG = "\033[36m";
 constexpr const char* COLOR_ERROR = "\033[31m";
+constexpr const char* COLOR_WARN = "\033[33m";
 }  // namespace
 
 Logger::Logger() : Logger(std::cout, std::cerr, Options{}) {}
@@ -36,6 +37,9 @@ void Logger::set_level_enabled(Level level, bool enabled) {
                 break;
             case Level::Error:
                 options.error_enabled = enabled;
+                break;
+            case Level::Warn:
+                options.warn_enabled = enabled;
                 break;
         }
     });
@@ -106,6 +110,17 @@ void Logger::error(const Error& error) const {
     log(Level::Error, error.get_message() + errno_details);
 }
 
+void Logger::warn(const std::string& message) const {
+    log(Level::Warn, message);
+}
+
+void Logger::warn(const Error& error) const {
+    const int current_errno = errno;
+    const std::string errno_details = " (errno=" + std::to_string(current_errno) + ": " + std::strerror(current_errno) +
+                                      ")";
+    log(Level::Warn, error.get_message() + errno_details);
+}
+
 void Logger::log(Level level, const std::string& message) const {
     atomic([&]() {
         if (!level_enabled(level)) {
@@ -123,11 +138,13 @@ bool Logger::level_enabled(Level level) const {
             return options.debug_enabled;
         case Level::Error:
             return options.error_enabled;
+        case Level::Warn:
+            return options.warn_enabled;
     }
     return false;
 }
 
-const char* Logger::level_name(Level level) const {
+std::string Logger::level_name(Level level) const {
     switch (level) {
         case Level::Info:
             return "INFO ";
@@ -135,11 +152,13 @@ const char* Logger::level_name(Level level) const {
             return "DEBUG";
         case Level::Error:
             return "ERROR";
+        case Level::Warn:
+            return "WARN ";
     }
     return "";
 }
 
-const char* Logger::level_color(Level level) const {
+std::string Logger::level_color(Level level) const {
     switch (level) {
         case Level::Info:
             return COLOR_INFO;
@@ -147,6 +166,8 @@ const char* Logger::level_color(Level level) const {
             return COLOR_DEBUG;
         case Level::Error:
             return COLOR_ERROR;
+        case Level::Warn:
+            return COLOR_WARN;
     }
     return COLOR_RESET;
 }
@@ -190,11 +211,16 @@ void Logger::write(Level level, const std::string& message) const {
     stream << std::endl;
 }
 
-void Logger::request_result_info(const HttpRequest& request, const HttpResponse& response) {
+void Logger::request_result_info(
+    const HttpRequest& request, 
+    const HttpResponse& response,
+    const std::optional<std::string>& host, 
+    const std::optional<int>& port) {
     std::string info_string = 
     "[REQUEST] " + method_to_string(request.get_method()) + " " + request.get_path() + " " 
         + status_code_to_string(response.get_status_code()) + " "
-        + get_status_message(response.get_status_code());
+        + get_status_message(response.get_status_code())
+        + " from " + host.value_or("unknown") + ":" + std::to_string(port.value_or(0));
     info(info_string);
 }
 

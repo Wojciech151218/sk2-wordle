@@ -38,7 +38,6 @@ int main(int argc, char* argv[]) {
     options.error_enabled = true;
     options.use_colors = true;
     logger.configure(options);
-    logger.debug("Logger configured with defaults");
 
     TcpServer server;
     server.add_method(word_method);

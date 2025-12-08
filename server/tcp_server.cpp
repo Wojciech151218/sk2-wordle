@@ -17,7 +17,7 @@ TcpServer::~TcpServer() {
 
 void TcpServer::start(int port, std::string address) {
     Logger& logger = Logger::instance();
-    logger.info("Starting TCP server on " + address + ":" + std::to_string(port));
+    logger.info("Starting HTTP/TCP server on " + address + ":" + std::to_string(port));
     socket.listen(address, port)
         .finally<void*>([&]() {
             logger.debug("Listening for incoming connections...");
@@ -36,7 +36,6 @@ void TcpServer::handle_client(TcpSocket* client_socket) {
     while (true) {
         auto request = client_socket->receive(client_timeout);
         if (request.is_err()) {
-            logger.error(request.unwrap_err());
             client_socket->disconnect();
             break;
         }
@@ -44,7 +43,7 @@ void TcpServer::handle_client(TcpSocket* client_socket) {
 
         logger.debug("Received from client: " + http_request.to_string());
         auto response = router.handle_request(http_request);
-        logger.request_result_info(http_request, response);
+        logger.request_result_info(http_request, response, client_socket->get_host(), client_socket->get_port());
 
         logger.debug("Sending response to client: " + response.to_string());
 

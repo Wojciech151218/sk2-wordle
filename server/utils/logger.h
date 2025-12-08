@@ -3,23 +3,26 @@
 #include "server/utils/error.h"
 #include "server/utils/global_state.h"
 
+
 #include <chrono>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <string>
 
+
 class HttpRequest;
 class HttpResponse;
 
 class Logger : public GlobalState<Logger> {
   public:
-    enum class Level { Info, Debug, Error };
+    enum class Level { Info, Debug, Error ,Warn};
 
     struct Options {
         bool info_enabled = true;
         bool debug_enabled = true;
         bool error_enabled = true;
+        bool warn_enabled = true;
         bool use_colors = true;
         bool use_timestamps = true;
     };
@@ -41,9 +44,16 @@ class Logger : public GlobalState<Logger> {
     void info(const std::string& message) const;
     void debug(const std::string& message) const;
     void error(const Error& error) const;
+    void warn(const std::string& message) const;
+    void warn(const Error& error) const;
     void log(Level level, const std::string& message) const;
 
-    void request_result_info(const HttpRequest& request, const HttpResponse& response);
+    void request_result_info(
+      const HttpRequest& request, 
+      const HttpResponse& response,
+      const std::optional<std::string>& host,
+      const std::optional<int>& port
+    );
 
   private:
     std::ostream& out_stream;
@@ -55,10 +65,10 @@ class Logger : public GlobalState<Logger> {
     friend class GlobalState<Logger>;
 
     bool level_enabled(Level level) const;
-    const char* level_name(Level level) const;
-    const char* level_color(Level level) const;
+    std::string level_color(Level level) const;
+    std::string level_name(Level level) const;
+    std::string thread_info() const;;
     std::string format_timestamp() const;
     void write(Level level, const std::string& message) const;
-    std::string thread_info() const;
 };
 

@@ -8,7 +8,9 @@
 #include <string>
 #include <utility>
 
-#include "logger.h"
+#include "server/utils/logger.h"
+
+
 template <typename T>
 class Result {
   private:
@@ -54,6 +56,9 @@ class Result {
 
     template <typename U>
     Result<U> log_debug() const;
+
+    template <typename U>
+    Result<U> log_warn() const;
 };
 
 template <typename T>
@@ -181,6 +186,15 @@ template <typename U>
 inline Result<U> Result<T>::log_debug() const {
     if (is_err()) {
         logger.debug(unwrap_err().get_message());
+    }
+    return *this;
+}
+
+template <typename T>
+template <typename U>
+inline Result<U> Result<T>::log_warn() const {
+    if (is_err()) {
+        logger.warn(left.value());
     }
     return *this;
 }

@@ -27,5 +27,8 @@ class TcpSocket {
     Result<std::string> receive(std::optional<std::chrono::milliseconds> timeout = std::nullopt);
     Result<TcpSocket> accept();
 
+    std::optional<std::string> get_host() const;
+    std::optional<int> get_port() const;
+
     std::chrono::milliseconds time_since_last_activity() const;
 };
