@@ -48,11 +48,17 @@ class Result {
 
     template <typename U>
     Result<U> finally(const std::function<U(T)>& func) const;
+
+    template <typename U>
+    Result<U> log_error() const;
+
+    template <typename U>
+    Result<U> log_debug() const;
 };
 
 template <typename T>
 [[nodiscard]] inline Error Result<T>::current_error() const {
-    logger.error(left.value());
+    //logger.error(left.value());
     return left.value();
 }
 
@@ -71,7 +77,9 @@ inline Result<T>::Result(Error&& error) : left(std::move(error)) {}
 template <typename T>
 inline Result<int> Result<T>::from_bsd(int value, const std::string& error_message) {
     if (value < 0) {
-        return Result<int>(Error(error_message));
+        Error error(error_message);
+        Logger::instance().error(error);
+        return Result<int>(error);
     }
     return Result<int>(value);
 }
@@ -94,6 +102,7 @@ inline T Result<T>::unwrap(bool should_exit) const {
     left.value().handle_error(should_exit);
     throw std::runtime_error("Attempted to unwrap error result");
 }
+
 
 template <typename T>
 inline T Result<T>::unwrap(bool should_exit) {
@@ -156,4 +165,22 @@ inline Result<U> Result<T>::finally(const std::function<U(T)>& func) const {
     }
 
     return Result<U>(current_error());
+}
+
+template <typename T>
+template <typename U>
+inline Result<U> Result<T>::log_error() const {
+    if (is_err()) {
+        logger.error(left.value());
+    }
+    return *this;
+}
+
+template <typename T>
+template <typename U>
+inline Result<U> Result<T>::log_debug() const {
+    if (is_err()) {
+        logger.debug(unwrap_err().get_message());
+    }
+    return *this;
 }

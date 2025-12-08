@@ -1,4 +1,5 @@
 #include "server/tcp_server.h"
+#include "server/utils/logger.h"
 
 #include <string>
 #include <chrono>
@@ -43,6 +44,7 @@ void TcpServer::handle_client(TcpSocket* client_socket) {
 
         logger.debug("Received from client: " + http_request.to_string());
         auto response = router.handle_request(http_request);
+        logger.request_result_info(http_request, response);
 
         logger.debug("Sending response to client: " + response.to_string());
 

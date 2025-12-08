@@ -9,6 +9,9 @@
 #include <sstream>
 #include <string>
 
+class HttpRequest;
+class HttpResponse;
+
 class Logger : public GlobalState<Logger> {
   public:
     enum class Level { Info, Debug, Error };
@@ -40,6 +43,8 @@ class Logger : public GlobalState<Logger> {
     void error(const Error& error) const;
     void log(Level level, const std::string& message) const;
 
+    void request_result_info(const HttpRequest& request, const HttpResponse& response);
+
   private:
     std::ostream& out_stream;
     std::ostream& err_stream;
@@ -54,5 +59,6 @@ class Logger : public GlobalState<Logger> {
     const char* level_color(Level level) const;
     std::string format_timestamp() const;
     void write(Level level, const std::string& message) const;
+    std::string thread_info() const;
 };
 

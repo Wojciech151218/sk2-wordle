@@ -24,7 +24,7 @@ TcpSocket::TcpSocket(int socket_fd, const std::string& host, int port)
        last_activity(std::chrono::steady_clock::now()) {
     int opt = 1;
     setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
-    }
+}
 
 
 Result<int> TcpSocket::check_connected(std::string message) const {
@@ -54,7 +54,8 @@ Result<TcpSocket> TcpSocket::listen(const std::string& host, int port, int max_c
         )
         .finally<TcpSocket>([&]() {
             return *this;
-        });
+        })
+        .log_error<TcpSocket>();
 }
 
 Result<TcpSocket> TcpSocket::connect(const std::string& host, int port) {
@@ -76,7 +77,8 @@ Result<TcpSocket> TcpSocket::connect(const std::string& host, int port) {
         )
         .finally<TcpSocket>([&]() {
             return *this;
-        });
+        })
+        .log_error<TcpSocket>();
 }
 
 Result<void*> TcpSocket::disconnect() {
@@ -90,7 +92,8 @@ Result<void*> TcpSocket::disconnect() {
         host.reset();
         port.reset();
         return nullptr;
-    });
+    })
+    .log_error<void*>();
 }
 
 Result<size_t> TcpSocket::send(const std::string& data) {
@@ -101,7 +104,8 @@ Result<size_t> TcpSocket::send(const std::string& data) {
     ).finally<size_t>([&](size_t result) {
         touch();
         return result;
-    });
+    })
+    .log_error<size_t>();
 
     
 }
@@ -118,13 +122,15 @@ Result<std::string> TcpSocket::receive(std::optional<std::chrono::milliseconds> 
                 fd.events = POLLIN;
                 int poll_result = ::poll(&fd, 1, static_cast<int>(timeout->count()));
                 if (poll_result == 0) {
-                    return Result<std::string>(Error("Receive timeout"));
+                    return Result<std::string>(Error("Receive timeout"))
+                        .log_debug<std::string>();
                 }
                 if (poll_result < 0) {
                     if (errno == EINTR) {
                         continue;
                     }
-                    return Result<std::string>(Error("Failed to wait for data"));
+                    return Result<std::string>(Error("Failed to wait for data"))
+                        .log_error<std::string>();
                 }
             }
 
@@ -133,10 +139,12 @@ Result<std::string> TcpSocket::receive(std::optional<std::chrono::milliseconds> 
                 if (errno == EINTR) {
                     continue;
                 }
-                return Result<std::string>(Error("Failed to receive data"));
+                return Result<std::string>(Error("Failed to receive data"))
+                    .log_error<std::string>();
             }
             if (bytes_read == 0) {
-                return Result<std::string>(Error("Client disconnected"));
+                return Result<std::string>(Error("Client disconnected"))
+                    .log_debug<std::string>();
             }
             touch();
             return Result<std::string>(std::string(buffer, bytes_read));

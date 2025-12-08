@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
     Logger& logger = Logger::instance();
     Logger::Options options{};
     options.info_enabled = true;
-    options.debug_enabled = true;
+    options.debug_enabled = false;
     options.error_enabled = true;
     options.use_colors = true;
     logger.configure(options);

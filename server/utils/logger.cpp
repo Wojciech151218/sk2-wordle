@@ -1,5 +1,9 @@
 #include "server/utils/logger.h"
 
+#include "server/http/http_enums.h"
+#include "server/http/http_request.h"
+#include "server/http/http_response.h"
+
 #include <cerrno>
 #include <chrono>
 #include <cstring>
@@ -160,19 +164,36 @@ std::string Logger::format_timestamp() const {
     return ss.str();
 }
 
+std::string Logger::thread_info() const {
+    if (!options.debug_enabled) return "";
+    std::ostringstream ss;
+    ss << std::this_thread::get_id();
+    return "[THREAD " + ss.str() + "]";
+}
+
 void Logger::write(Level level, const std::string& message) const {
     std::ostream& stream = (level == Level::Error) ? err_stream : out_stream;
     if (options.use_colors) {
         stream << level_color(level);
     }
-    stream << "[";
+    stream << "["  << level_name(level);
+
     if (options.use_timestamps) {
         stream << format_timestamp() << " ";
     }
-    stream << level_name(level) << " thread :" << std::this_thread::get_id() << "] " << message;
+    stream << "] ";
+    stream << thread_info();
     if (options.use_colors) {
         stream << COLOR_RESET;
     }
     stream << std::endl;
+}
+
+void Logger::request_result_info(const HttpRequest& request, const HttpResponse& response) {
+    std::string info_string = 
+    "[REQUEST] " + method_to_string(request.get_method()) + " " + request.get_path() + " " 
+        + status_code_to_string(response.get_status_code()) + " "
+        + get_status_message(response.get_status_code());
+    info(info_string);
 }
 

@@ -20,6 +20,7 @@ class HttpResponse{
     static HttpResponse from_json(Result<nlohmann::json> json);
     HttpResponse add_header(const HttpHeader& header);
     HttpResponse add_cors_headers();
+    HttpStatusCode get_status_code() const;
     std::string to_string() const;
     static HttpResponse option_response(std::vector<HttpMethod> allowed_methods);
 

@@ -87,3 +87,7 @@ HttpResponse HttpResponse::option_response(std::vector<HttpMethod> allowed_metho
     .add_cors_headers()
     .add_header(HttpHeader("Allow", allowed_methods_string));
 }
+
+HttpStatusCode HttpResponse::get_status_code() const {
+    return status_code;
+}
