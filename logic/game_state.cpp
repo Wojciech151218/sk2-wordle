@@ -51,11 +51,8 @@ bool GameState::end_round() {
         }
 
         // Sprawdzamy, czy gra się zakończyła
-        if (check_if_game_is_over()) {
-            return false;  // Jeśli gra się zakończyła, nie przechodzimy do kolejnej rundy
-        }
-
-        return true;  // Runda zakończona, przechodzimy do następnej
+        return !check_if_game_is_over();
+        
     }
     return false;  // Gra nie trwa
 }
