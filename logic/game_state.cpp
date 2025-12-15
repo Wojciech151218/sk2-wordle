@@ -28,13 +28,8 @@ bool GameState::start_game() {
         round_end_time = game_start_time + round_duration;  // Ustawiamy czas do końca rundy
 
         // Rozpoczynamy pierwszą rundę
-        bool round_started = end_round(); // uruchamiamy metodę do zakończenia pierwszej rundy
-
-        if (!round_started) {
-            return false;  // Jeśli nie udało się zakończyć rundy, nie rozpoczynamy gry
-        }
-
-        return true; // Gra rozpoczęta
+        return end_round(); // uruchamiamy metodę do zakończenia pierwszej rundy
+        
     }
     return false; // Gra już trwa lub za mało graczy
 }
