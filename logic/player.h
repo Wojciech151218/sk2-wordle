@@ -1,34 +1,38 @@
+#pragma once
+#include <string>
+
+class Game;
+class Round;
+class GameState;
+
+/*
+    Player trzyma stan konkretnego gracza
+    round_errors rośnie w Round::make_guess() gdy GuessResult == ADDED
+*/
 class Player {
-    private:
-        std::string player_name;    // Nazwa gracza
-        int round_errors;           // Liczba błędów w rundzie
-        int all_errors;             // Łączna liczba błędów
-        bool is_alive;              // Czy gracz żyje
+private:
+    std::string player_name;
+    int round_errors;   // ile błędów w tej rundzie 
+    int all_errors;     // suma błędów z całej gry
+    bool is_alive;      // czy gracz jest nadal w grze 
 
+    // Dzięki temu Game/Round/GameState mogą edytować prywatne pola gracza
+    friend class Game;
+    friend class Round;
+    friend class GameState;
 
-    public:
-        Player(const std::string& name);
-            //: player_name(name), round_errors(0), all_errors(0), is_alive(true) {}
+public:
+    Player(const std::string& name);
 
+    // Reset gracza do stanu początkowego
+    void reset_state();
 
-        void reset_state();//{
-        //     round_errors = 0;
-        //     all_errors = 0;
-        //     is_alive = true;
-        // }
+    // Czy żyje
+    bool get_is_alive();
 
-        void get_is_alive();
+    // Podsumowanie rundy:
+    void handle_round();
 
-        void handle_round(bool status, int errors);//{
-            //         player.all_errors += player.round_errors;  // Dodajemy błędy z tej rundy do całkowitych błędów
-            // if (player.is_active && player.round_errors >= 6) {  // Jeśli gracz ma 6 błędów, zostaje wyeliminowany
-            //     player.is_alive = false;
-            // }
-            // player.round_errors = 0;  // Resetujemy liczbę błędów w tej rundzie}
-
-        void set_is_alive(bool status);
-
-        void set_round_errors(int errors);
-
-
-}
+    void set_is_alive(bool status);
+    void set_round_errors(int errors);
+};

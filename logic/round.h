@@ -1,26 +1,33 @@
-// game_state.h
-
 #pragma once
-
 #include <vector>
 #include <string>
-#include <ctime>  
+#include <ctime>
+#include <unordered_map>
 
+#include "player.h"
+#include "guesses.h"
+
+/*
+    Round == jedna konkretna runda:
+*/
 class Round {
 private:
     std::string word;
 
-    time_t round_end_time;      // Czas do końca rundy
-    time_t round_duration;      // Czas trwania jednej rundy
-    time_t game_start_time;     // Czas rozpoczęcia gry
+    time_t round_end_time;
+    time_t round_duration;
+    time_t game_start_time;
 
-    std::ordered_map<Player*, Guesses> players_map; // Mapa graczy
-p
+    // Każdy gracz w tej rundzie ma swój obiekt Guesses
+    std::unordered_map<Player*, Guesses> players_map;
 
 public:
     Round(std::vector<Player*> player_list, int num_players, time_t round_duration);
-    
-    bool is_round_active(); // const; // Sprawdzenie, czy runda trwa
-    void make_guess(Player* player, std::string& guess); // Dodanie zgadywanego słowa przez gracza (pobranie hasla od klienta)
 
+    // czy runda jeszcze trwa czasowo
+    bool is_round_active();
+
+    // gracz zgaduje:
+    // - jeśli guess był błędny => round_errors++
+    void make_guess(Player* player, std::string& guess);
 };

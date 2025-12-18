@@ -1,33 +1,46 @@
-// game_state.h
-
 #pragma once
-
 #include <vector>
 #include <string>
-#include <ctime>  // for time_t type
+#include <ctime>
+#include <optional>
 
+#include "player.h"
+#include "game.h"
+
+/*
+    - trzyma graczy w poczekalni (lobby)
+    - startuje grę, gdy jest min. 3 graczy
+    - nie zarządza rundami bezpośrednio (od tego jest Game)
+*/
 class GameState {
 private:
-    int num_players; // Liczba graczy
-    int round; // Numer rundy
-    time_t round_end_time; // Czas do końca rundy
-    time_t round_duration; // Czas trwania jednej rundy
-    time_t game_start_time; // Czas rozpoczęcia gry
+    int num_players;        // ile osób jest w LOBBY 
+    int round;              // numer rundy 
+    time_t round_end_time;  // kiedy kończy się aktualna runda
+    time_t round_duration;  // ile trwa jedna runda
+    time_t game_start_time; // kiedy startuje gra
 
+    // LOBBY
+    std::vector<Player> players_list;
 
-    std::vector<Player> players_list; // Lista graczy
-    std::optional<Game> games; // Bieżąca gra
+    // Aktywna gra 
+    std::optional<Game> games;
 
 public:
     GameState(int num_players, time_t round_duration);
-    
-    bool add_player(const std::string& player_name);    // Dodawanie gracza  //walidacja czy nazwa gracza juz istnieje w grze 
-    bool remove_player(const std::string& player_name); // Usunięcie gracza
 
-    bool start_game();  // Rozpoczęcie gry
-    void end_game();    // Zakończenie gry
-    
+    // Dodaje gracza do lobby
+    bool add_player(const std::string& player_name);
 
-    bool is_game_active() const; // Sprawdzenie, czy gra trwa
+    // Usuwa gracza z lobby
+    bool remove_player(const std::string& player_name);
 
+    // Startuje grę
+    bool start_game();
+
+    // Kończy grę i resetuje stan (przerzuca graczy z powrotem do lobby)
+    void end_game();
+
+    // Czy gra aktualnie działa
+    bool is_game_active() const;
 };

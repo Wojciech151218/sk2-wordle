@@ -1,10 +1,18 @@
-// game_state.h
-
 #pragma once
-
 #include <vector>
 #include <string>
-#include <ctime>  
+
+/*
+    GuessResult:
+    - ERR      - nie przyjęto próby (np. zła długość słowa lub brak prób)
+    - CORRECT  - zgadnięte hasło
+    - ADDED    - próba dodana, ale niepoprawna (czyli błąd gracza rośnie)
+*/
+enum class GuessResult {
+    ERR,
+    CORRECT,
+    ADDED
+};
 
 enum class LetterType {
     Yellow,
@@ -12,6 +20,8 @@ enum class LetterType {
     Gray,
 };
 
+
+//Letter opisuje jedną literę z jej “kolorem” jak w Wordle:
 struct Letter {
     std::string letter;
     LetterType type;
@@ -20,16 +30,18 @@ struct Letter {
 
 class Guesses {
 private:
-    std::vector<std::vector<Letter>> guesses;   // Lista zgadywanych słów
-    int max_guesses;                            // Maksymalna liczba zgadywanych słów
+    std::vector<std::vector<Letter>> guesses;
+    int max_guesses;
 
 public:
-    Guesses(int max_guesses);// : max_guesses(max_guesses) {};
-    
-    void add_guess_word(std::string guess, std::string actual); // Dodaje zgadywane słowo
+    Guesses(int max_guesses);
 
-    bool is_guess_correct(); // Sprawdza, czy zgadywane słowo jest poprawne
-    bool is_lost();          // Sprawdza, czy gracz przegrał
+    // Dodaje próbę i koloruje litery na podstawie actual
+    GuessResult add_guess_word(std::string guess, std::string actual);
 
-    
+    // walidacja zgadywanego słowa
+    bool is_guess_correct(std::string guess, std::string actual);
+
+    // czy gracz przegrał 
+    bool is_lost();
 };
