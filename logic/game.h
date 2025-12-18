@@ -16,7 +16,6 @@ class GameState;
 */
 class Game {
 private:
-    int round;                  // numer aktualnej rundy 
     time_t round_end_time;      // koniec aktualnej rundy
     time_t round_duration;      // ile trwa runda
     time_t game_start_time;     // kiedy wystartowała gra
@@ -27,7 +26,6 @@ private:
     // lista rund - ostatni element to aktywna runda
     std::vector<Round> rounds;
 
-    bool is_game_running;       //czy gra trwa
 
     //by przerzucić graczy z GameState do Game
     friend class GameState;
@@ -51,7 +49,6 @@ public:
     bool check_if_game_is_over();
 
     int get_round() const;
-    bool is_game_active() const;
 
     // Gracz wysyła guess: Game przekazuje to do aktualnej rundy
     void make_guess(std::string player_name, std::string guess);

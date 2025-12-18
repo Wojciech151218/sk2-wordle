@@ -4,11 +4,9 @@
 #include <ctime>
 
 // Tworzymy grę na podstawie listy graczy (już w rozgrywce) i czasu rundy
-Game::Game(std::vector<Player> player, time_t round_duration)
-    : round(0),
+Game::Game(std::vector<Player> player, time_t round_duration):
       round_duration(round_duration),
-      players_list(std::move(player)),
-      is_game_running(true) {
+      players_list(std::move(player)){
 
     // ustawienia czasu rund i gry
     game_start_time = std::time(nullptr);
@@ -26,15 +24,12 @@ Player* Game::find_player_ptr_by_name(const std::string& name) {
 
 // Startuje nową rundę
 bool Game::start_round() {
-    if (!is_game_running) return false;
 
     // Jeśli gra już powinna się skończyć, to nie startuj nowej rundy
     if (check_if_game_is_over()) {
-        is_game_running = false;
         return false;
     }
 
-    round++; // kolejna runda
     round_end_time = std::time(nullptr) + round_duration;
 
     // wskaźniki na żywych graczy, bo Round trzyma Player* w mapie
@@ -55,7 +50,6 @@ bool Game::start_round() {
 
 // Kończy aktualną rundę i w razie potrzeby startuje następną
 bool Game::end_round() {
-    if (!is_game_running) return false;
 
     // Każdy gracz podsumowuje rundę
     for (auto& p : players_list) {
@@ -66,7 +60,6 @@ bool Game::end_round() {
 
     // Jeśli po podsumowaniu zostało <= 1 gracz, kończymy grę
     if (check_if_game_is_over()) {
-        is_game_running = false;
         return false;
     }
 
@@ -84,16 +77,12 @@ bool Game::check_if_game_is_over() {
 }
 
 int Game::get_round() const {
-    return round;
+    return rounds.size();
 }
 
-bool Game::is_game_active() const {
-    return is_game_running;
-}
 
 // Obsługa guess:  /////////!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   NIE WIEM CZY DOBRZE  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!///////////////////
 void Game::make_guess(std::string player_name, std::string guess) {
-    if (!is_game_running) return;
 
     // Jeśli nie ma aktywnej rundy, to uruchamiamy pierwszą
     if (rounds.empty()) {
@@ -103,7 +92,6 @@ void Game::make_guess(std::string player_name, std::string guess) {
     // Jeśli czas rundy minął, kończymy rundę (co odpali kolejną)
     if (!rounds.back().is_round_active()) {
         end_round();
-        if (!is_game_running) return;
         if (rounds.empty()) return;
     }
 

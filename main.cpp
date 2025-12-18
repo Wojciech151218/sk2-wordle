@@ -5,7 +5,7 @@
 
 #include "server/utils/logger.h"
 #include "server/tcp_server.h"
-#include "logic/endpoints.h"
+#include "logic/endpoints/endpoints.h"
 #include "server/utils/config.h"
 #include <memory>
 
