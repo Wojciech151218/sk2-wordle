@@ -75,10 +75,6 @@ void TcpServer::run() {
     
 }
 
-void TcpServer::add_method(const ServerMethod & method) {
-    router.add_method(method);
-}
-
 void TcpServer::set_client_timeout(std::chrono::milliseconds timeout) {
     client_timeout = timeout;
 }

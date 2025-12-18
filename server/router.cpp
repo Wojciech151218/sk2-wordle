@@ -1,28 +1,24 @@
 #include "server/router.h"
-#include "utils/error.h"
 #include "server/http/http_request.h"
-
+#include "utils/error.h"
 
 Router::Router() {}
 
 Router::~Router() {}
 
-void Router::add_method(const ServerMethod & method) {
-    methods[method.get_path()].insert({method.get_method(), method});
-}
-
-
-Result<ServerMethod> Router::get_method(const HttpRequest& http_request) const {
+Result<const ServerMethodBase*> Router::get_method(const HttpRequest& http_request) const {
     const auto path_it = methods.find(http_request.get_path());
     if (path_it == methods.end()) {
-        return Result<ServerMethod>(Error("Path not found", HttpStatusCode::NOT_FOUND));
+        return Result<const ServerMethodBase*>(
+            Error("Path not found", HttpStatusCode::NOT_FOUND));
     }
-    
+
     const auto method_it = path_it->second.find(http_request.get_method());
     if (method_it == path_it->second.end()) {
-        return Result<ServerMethod>(Error("Method not allowed for this path", HttpStatusCode::METHOD_NOT_ALLOWED));
-    }   
-    return Result<ServerMethod>(method_it->second);
+        return Result<const ServerMethodBase*>(
+            Error("Method not allowed for this path", HttpStatusCode::METHOD_NOT_ALLOWED));
+    }
+    return Result<const ServerMethodBase*>(method_it->second.get());
 }
 
 std::vector<HttpMethod> Router::get_allowed_methods(const std::string& path) const {
@@ -50,16 +46,7 @@ HttpResponse Router::option_response(const HttpRequest& request) {
     return HttpResponse::option_response(allowed_methods);
 }
 
-HttpResponse Router::handle_request(Result<HttpRequest> request) {
-
-    if (request.is_err()) {
-        return HttpResponse::from_json(
-            Result<nlohmann::json>(request.unwrap_err())
-        );
-    }
-
-    HttpRequest http_request = request.unwrap();
-
+HttpResponse Router::handle_request(const HttpRequest& http_request) {
     if (http_request.get_method() == HttpMethod::OPTIONS) {
         return option_response(http_request);
     }
@@ -67,11 +54,10 @@ HttpResponse Router::handle_request(Result<HttpRequest> request) {
     auto method_result = get_method(http_request);
     if (method_result.is_err()) {
         return HttpResponse::from_json(
-            Result<nlohmann::json>(method_result.unwrap_err())
-        );
+            Result<nlohmann::json>(method_result.unwrap_err()));
     }
 
-    auto method = method_result.unwrap();   
-    auto response = method.handle_request(http_request.get_body());
+    const ServerMethodBase* method = method_result.unwrap();
+    auto response = method->handle_request(http_request.get_body());
     return HttpResponse::from_json(response);
 }

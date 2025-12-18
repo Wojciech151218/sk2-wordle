@@ -23,7 +23,11 @@ class TcpServer {
     void stop();
     void run();
     void handle_client(TcpSocket* socket);
-    void add_method(const ServerMethod & method);
+
+    template <typename Body>
+    void add_method(const ServerMethod<Body>& method) {
+        router.add_method(method);
+    }
     void set_client_timeout(std::chrono::milliseconds timeout);
     std::chrono::milliseconds get_client_timeout() const;
 };

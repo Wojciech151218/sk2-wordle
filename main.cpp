@@ -5,8 +5,9 @@
 
 #include "server/utils/logger.h"
 #include "server/tcp_server.h"
-#include "logic/word_method.h"
+#include "logic/endpoints.h"
 #include "server/utils/config.h"
+#include <memory>
 
 using namespace std;
 
@@ -40,7 +41,9 @@ int main(int argc, char* argv[]) {
     logger.configure(options);
 
     TcpServer server;
-    server.add_method(word_method);
+    server.add_method(join_method);
+    server.add_method(state_method);
+    server.add_method(guess_method);
     server.start(port, address);
     server.run();
     server.stop();
