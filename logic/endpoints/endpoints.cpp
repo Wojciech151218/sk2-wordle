@@ -8,8 +8,10 @@ GameState game_state = GameState(6,60);
 ServerMethod join_method = ServerMethod<JoinRequest>("/join", HttpMethod::POST, 
 [](const JoinRequest& request) {
     //gracz wchodzi do gry wchodzi do poczekalni jesli jego nick jest juz zajety to zwraca error
-    
+
     auto result = game_state.add_player(request);
+    game_state.start_game(); //tymczasowo dla testow
+
     if (result.is_err()) {
         return Result<nlohmann::json>(result.unwrap_err());
     }
@@ -35,13 +37,12 @@ ServerMethod state_method = ServerMethod<StateRequest>("/", HttpMethod::GET,
 });
 
 ServerMethod guess_method = ServerMethod<GuessRequest>("/guess", HttpMethod::POST, 
-[](const GuessRequest& request) {
+[](const GuessRequest& request) { 
     //gracz zgaduje słowo zwraca nowy stan gry error jesli gracz nie jest w grze lub odpadl/w poczekalni
-    
-    return Result<nlohmann::json>(nlohmann::json({
-        {"status", "success"},
-        {"player_name", request.player_name},
-        {"timestamp", request.timestamp},
-        {"guess", request.guess}
-    }));
+    auto result = game_state.make_guess(request);
+    if (result.is_err()) {
+        return Result<nlohmann::json>(result.unwrap_err());
+    }
+    nlohmann::json json = game_state;
+    return Result<nlohmann::json>(json);
 });

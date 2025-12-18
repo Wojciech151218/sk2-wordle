@@ -51,13 +51,13 @@ bool GameState::start_game() {
     if (game.has_value()) return false;
 
     // start tylko gdy w lobby jest min 3 graczy
-    if (players_list.size() < 3) return false;
+    //if (players_list.size() < 1) return false;
 
     game_start_time = std::time(nullptr);
     round_end_time = game_start_time + round_duration;
 
     // przerzucamy lobby do gry (po starcie lobby ma być puste)
-    game.emplace(std::move(players_list), round_duration);
+    game = Game(std::move(players_list), round_duration);
     players_list.clear();
 
     // start pierwszej rundy
@@ -83,7 +83,7 @@ Result<GameState> GameState::get_state(const StateRequest& request) const {
     return Result<GameState>(*this);
 }
 
-Result<GameState> GameState::make_guess(const GuessRequest& request) {
+Result<std::vector<WordleWord>> GameState::make_guess(const GuessRequest& request) {
     std::string player_name = request.player_name;
     std::string guess = request.guess;
 
@@ -91,6 +91,5 @@ Result<GameState> GameState::make_guess(const GuessRequest& request) {
         return Error("Game not found", HttpStatusCode::NOT_FOUND);
     }
 
-    game->make_guess(player_name, guess);
-    return Result<GameState>(*this);
+    return game->make_guess(player_name, guess);
 }
