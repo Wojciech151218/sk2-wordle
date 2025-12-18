@@ -17,15 +17,21 @@ ServerMethod join_method = ServerMethod<JoinRequest>("/join", HttpMethod::POST,
     return Result<nlohmann::json>(json);
 });
 
+ServerMethod leave_method = ServerMethod<JoinRequest>("/join", HttpMethod::DELETE, 
+[](const JoinRequest& request) {
+    auto result = game_state.remove_player(request);
+    if (result.is_err()) {
+        return Result<nlohmann::json>(result.unwrap_err());
+    }
+    nlohmann::json json = game_state;
+    return Result<nlohmann::json>(json);
+});
+
 ServerMethod state_method = ServerMethod<StateRequest>("/", HttpMethod::GET, 
 [](const StateRequest& request) {
     // pobiera stan gry dostepny dla gracza zwraca error jesli gracz nie jest w grze
-
-    return Result<nlohmann::json>(nlohmann::json({
-        {"status", "success"},
-        {"player_name", request.player_name},
-        {"timestamp", request.timestamp}
-    }));
+    nlohmann::json json = game_state;
+    return Result<nlohmann::json>(json);
 });
 
 ServerMethod guess_method = ServerMethod<GuessRequest>("/guess", HttpMethod::POST, 

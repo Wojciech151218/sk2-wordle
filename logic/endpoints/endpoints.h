@@ -7,3 +7,4 @@
 extern ServerMethod<JoinRequest> join_method;
 extern ServerMethod<StateRequest> state_method;
 extern ServerMethod<GuessRequest> guess_method;
+extern ServerMethod<JoinRequest> leave_method;

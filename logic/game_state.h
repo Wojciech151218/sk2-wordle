@@ -32,14 +32,14 @@ private:
 public:
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(GameState, max_players, round_end_time, round_duration, game_start_time, players_list, game)
 
-    GameState(int num_players, time_t round_duration);
+    GameState(int max_players, time_t round_duration);
     
 
     // Dodaje gracza do lobby
     Result<GameState> add_player(const JoinRequest& request);
 
     // Usuwa gracza z lobby
-    bool remove_player(const std::string& player_name);
+    Result<GameState> remove_player(const JoinRequest& request);
 
     // Startuje grę
     bool start_game();
