@@ -21,6 +21,7 @@ enum class HttpStatusCode{
   METHOD_NOT_ALLOWED = 405,
   INTERNAL_SERVER_ERROR = 500,
   NO_CONTENT = 204,
+  FORBIDDEN = 403,
 };
 
 enum class HttpVersion{

@@ -1,18 +1,20 @@
 #include "logic/endpoints/request_bodies.h"
 #include "server/server_method.h"
 #include <memory>
+#include "logic/game_state.h"
 
-//WordleState wordle_state = WordleState(6,5);
+GameState game_state = GameState(6,60);
 
 ServerMethod join_method = ServerMethod<JoinRequest>("/join", HttpMethod::POST, 
 [](const JoinRequest& request) {
     //gracz wchodzi do gry wchodzi do poczekalni jesli jego nick jest juz zajety to zwraca error
     
-
-    return Result<nlohmann::json>(nlohmann::json({
-        {"status", "success"},
-        {"player_name", request.player_name}
-    }));
+    auto result = game_state.add_player(request);
+    if (result.is_err()) {
+        return Result<nlohmann::json>(result.unwrap_err());
+    }
+    nlohmann::json json = game_state;
+    return Result<nlohmann::json>(json);
 });
 
 ServerMethod state_method = ServerMethod<StateRequest>("/", HttpMethod::GET, 

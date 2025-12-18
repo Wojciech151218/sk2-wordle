@@ -20,6 +20,7 @@ std::string get_status_message(HttpStatusCode status_code) {
         case HttpStatusCode::METHOD_NOT_ALLOWED: return "Method Not Allowed";
         case HttpStatusCode::INTERNAL_SERVER_ERROR: return "Internal Server Error";
         case HttpStatusCode::NO_CONTENT: return "No Content";
+        case HttpStatusCode::FORBIDDEN: return "Forbidden";
         default: return "OK";
     }
 }
@@ -59,6 +60,7 @@ std::string status_code_to_string(HttpStatusCode status_code) {
         case HttpStatusCode::METHOD_NOT_ALLOWED: return "405";
         case HttpStatusCode::INTERNAL_SERVER_ERROR: return "500";
         case HttpStatusCode::NO_CONTENT: return "204";
+        case HttpStatusCode::FORBIDDEN: return "403";
         default: return "200";
     }
 }

@@ -23,8 +23,8 @@ Round::Round(std::vector<Player*> player_list, time_t round_duration)
     : word(pick_random_word_5()),
       round_duration(round_duration) {
 
-    game_start_time = std::time(nullptr);
-    round_end_time = game_start_time + round_duration;
+    round_start_time = std::time(nullptr);
+    round_end_time = round_start_time + round_duration;
 
     for (Player* p : player_list) {
         if (!p) continue;
@@ -43,21 +43,22 @@ bool Round::is_round_active() {
     - dodaje próbę do Guesses
     - jeśli próba była błędna (ADDED), zwiększa round_errors gracza
 */
-void Round::make_guess(Player* player, std::string& guess) {
-    if (!player) return;                //gracz istnieje
-    if (!is_round_active()) return;     //czy runda trwa,
-    if (!player->is_alive) return;      //gracz żyje
+Result<Round> Round::make_guess(Player* player, std::string& guess) {
+    if (!player) return Error("Player not in round", HttpStatusCode::NOT_FOUND);                //gracz istnieje
+    if (!is_round_active()) return Error("Round not active", HttpStatusCode::BAD_REQUEST);     //czy runda trwa,
+    if (!player->is_alive) return Error("Player not alive", HttpStatusCode::BAD_REQUEST);      //gracz żyje
 
     auto it = players_map.find(player);
-    if (it == players_map.end()) return; //jesli gracz nie bierze udziału w rundzie
+    if (it == players_map.end()) return Error("Player not in round", HttpStatusCode::NOT_FOUND); //jesli gracz nie bierze udziału w rundzie
 
     Guesses& g = it->second;
 
-    if (g.is_lost()) return; // nie ma już prób
+    if (g.is_lost()) return Error("Player lost", HttpStatusCode::BAD_REQUEST); // nie ma już prób
 
-    GuessResult res = g.add_guess_word(guess, word);
+    auto result = g.add_guess_word(guess, word);
+    if (result.is_err()) return Error(result.unwrap_err());
 
-    if (res == GuessResult::ADDED) {// jeśli próba była błędna (ADDED), zwiększa round_errors gracza
+    if (result.unwrap() == GuessResult::INCORRECT) {// jeśli próba była błędna (ADDED), zwiększa round_errors gracza
         player->round_errors += 1; 
     }
     // CORRECT - brak user odgadł hasło ---- trzeba dopisać logike na to jak odgadł hasło ale to już po stronie klienta chyba

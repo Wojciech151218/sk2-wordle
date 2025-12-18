@@ -9,23 +9,26 @@ GameState::GameState(int num_players, time_t round_duration)
       players_list(),
       game(std::nullopt) {}
 
-bool GameState::add_player(const std::string& player_name) {
+Result<GameState> GameState::add_player(const JoinRequest& request) {
+    std::string player_name = request.player_name;
     // blokada duplikatów w lobby
     for (size_t i = 0; i < players_list.size(); ++i) {
         const Player& p = players_list[i];
-        if (p.player_name == player_name) return false;
+        if (p.player_name == player_name) 
+            return Error("Player already in lobby", HttpStatusCode::FORBIDDEN);
     }
 
     // jeśli gra trwa, to też blokujemy duplikaty z aktualnej rozgrywki
     if (game.has_value()) {
         for (const auto& p : game->players_list) {
-            if (p.player_name == player_name) return false;
+            if (p.player_name == player_name) 
+                return Error("Player already in game", HttpStatusCode::FORBIDDEN);
         }
     }
 
     // dodaj do lobby
     players_list.emplace_back(player_name);
-    return true;
+    return Result<GameState>(*this);
 }
 
 bool GameState::remove_player(const std::string& player_name) {
@@ -68,3 +71,22 @@ void GameState::end_game() {
     game_start_time = 0;
 }
 
+
+Result<GameState> GameState::get_state(const StateRequest& request) const {
+    std::string player_name = request.player_name;
+    std::time_t timestamp = request.timestamp;
+
+    return Result<GameState>(*this);
+}
+
+Result<GameState> GameState::make_guess(const GuessRequest& request) {
+    std::string player_name = request.player_name;
+    std::string guess = request.guess;
+
+    if (!game.has_value()) {
+        return Error("Game not found", HttpStatusCode::NOT_FOUND);
+    }
+
+    game->make_guess(player_name, guess);
+    return Result<GameState>(*this);
+}

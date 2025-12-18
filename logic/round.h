@@ -16,12 +16,14 @@ private:
 
     time_t round_end_time;
     time_t round_duration;
-    time_t game_start_time;
+    time_t round_start_time;
 
     // Każdy gracz w tej rundzie ma swój obiekt Guesses
     std::unordered_map<Player*, Guesses> players_map;
 
 public:
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Round, word, round_end_time, round_duration, round_start_time);
+
     Round(std::vector<Player*> player_list, time_t round_duration);
 
     // czy runda jeszcze trwa czasowo
@@ -29,5 +31,5 @@ public:
 
     // gracz zgaduje:
     // - jeśli guess był błędny => round_errors++
-    void make_guess(Player* player, std::string& guess);
+    Result<Round> make_guess(Player* player, std::string& guess);
 };

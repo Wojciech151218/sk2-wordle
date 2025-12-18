@@ -1,6 +1,8 @@
 #pragma once
 #include <string>
 
+#include "nlohmann/json.hpp"
+
 class Game;
 class Round;
 class GameState;
@@ -21,7 +23,10 @@ private:
     friend class Round;
     friend class GameState;
 
+
 public:
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Player, player_name, round_errors, all_errors, is_alive);
+
     Player(const std::string& name);
 
     // Reset gracza do stanu początkowego

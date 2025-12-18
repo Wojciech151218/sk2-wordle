@@ -34,6 +34,8 @@ private:
     Player* find_player_ptr_by_name(const std::string& player_name);
 
 public:
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Game, round_end_time, round_duration, game_start_time, players_list, rounds)
+
     // Konstruktor gry
     Game(std::vector<Player> player, time_t round_duration);
 
@@ -51,5 +53,5 @@ public:
     int get_round() const;
 
     // Gracz wysyła guess: Game przekazuje to do aktualnej rundy
-    void make_guess(std::string player_name, std::string guess);
+    Result<std::vector<WordleWord>> make_guess(std::string player_name, std::string guess);
 };

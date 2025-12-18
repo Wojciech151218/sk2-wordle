@@ -56,7 +56,7 @@ Result<std::unique_ptr<RequestBody>> StateRequest::validate(const nlohmann::json
     
     auto parsed_timestamp = parse_timestamp(json["timestamp"]);
     if (parsed_timestamp.is_err()) {
-        return parsed_timestamp.unwrap_err(false);
+        return parsed_timestamp.unwrap_err();
     }
 
     return Result<std::unique_ptr<RequestBody>>(
@@ -74,7 +74,7 @@ Result<std::unique_ptr<RequestBody>> GuessRequest::validate(const nlohmann::json
     
     auto parsed_timestamp = parse_timestamp(json["timestamp"]);
     if (parsed_timestamp.is_err()) {
-        return parsed_timestamp.unwrap_err(false);
+        return parsed_timestamp.unwrap_err();
     }
 
     return Result<std::unique_ptr<RequestBody>>(
