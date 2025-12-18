@@ -17,12 +17,12 @@ bool Guesses::is_lost() {
 //dodaje zgadywane słowo i koloruje litery
 GuessResult Guesses::add_guess_word(std::string guess, std::string actual){
     std::vector<Letter> out;
-
+    // walidacja zgadywanego słowa
     if (guess.length() != actual.length() || is_lost()) {
         return GuessResult::ERR;
     }
 
-    // trafione -> same zielone
+    // trafione - same zielone
     if (is_guess_correct(guess, actual)) {
         for (size_t i = 0; i < guess.length(); i++) {
             Letter letter;
@@ -34,7 +34,7 @@ GuessResult Guesses::add_guess_word(std::string guess, std::string actual){
         return GuessResult::CORRECT;
     }
 
-    // nietrafione -> Green/Yellow/Gray (uwaga: find() nie ogarnia idealnie duplikatów, ale działa “basic”)
+    // nietrafione - Green/Yellow/Gray 
     for (size_t i = 0; i < guess.length(); i++) {
         Letter letter;
         letter.letter = std::string(1, guess[i]);
@@ -50,5 +50,5 @@ GuessResult Guesses::add_guess_word(std::string guess, std::string actual){
     }
 
     guesses.push_back(out);
-    return GuessResult::ADDED;
+    return GuessResult::ADDED;  //znak, że próba dodana, ale błędna 
 }
