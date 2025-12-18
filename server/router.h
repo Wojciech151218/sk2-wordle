@@ -21,7 +21,8 @@ class Router {
     void add_method(const ServerMethod<Body>& method) {
         methods[method.get_path()].insert(
             {method.get_method(), std::make_unique<ServerMethod<Body>>(method)});
-    }
+    };
+    void log_methods();
 
     HttpResponse handle_request(const HttpRequest& request);
     HttpResponse option_response(const HttpRequest& request);

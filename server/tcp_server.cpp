@@ -18,6 +18,7 @@ TcpServer::~TcpServer() {
 void TcpServer::start(int port, std::string address) {
     Logger& logger = Logger::instance();
     logger.info("Starting HTTP/TCP server on " + address + ":" + std::to_string(port));
+    router.log_methods();
     socket.listen(address, port)
         .finally<void*>([&]() {
             logger.debug("Listening for incoming connections...");

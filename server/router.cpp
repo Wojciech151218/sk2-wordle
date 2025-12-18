@@ -61,3 +61,12 @@ HttpResponse Router::handle_request(const HttpRequest& http_request) {
     auto response = method->handle_request(http_request.get_body());
     return HttpResponse::from_json(response);
 }
+
+void Router::log_methods() {
+    Logger& logger = Logger::instance();
+    for (const auto& [path, method_map] : methods) {
+        for (const auto& [method, method_ptr] : method_map) {
+            logger.info("registered route: " + path + " " + method_to_string(method));
+        }
+    }
+}
