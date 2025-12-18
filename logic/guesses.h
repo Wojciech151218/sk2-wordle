@@ -21,7 +21,7 @@ enum class LetterType {
 };
 
 
-//Letter opisuje jedną literę z jej “kolorem” jak w Wordle:
+//Letter opisuje jedną literę z jej kolorem:
 struct Letter {
     std::string letter;
     LetterType type;

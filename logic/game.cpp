@@ -49,7 +49,7 @@ bool Game::start_round() {
     }
 
     // Tworzymy rundę i dopisujemy do listy rund
-    rounds.emplace_back(alive, static_cast<int>(alive.size()), round_duration);
+    rounds.emplace_back(alive, round_duration);
     return true;
 }
 

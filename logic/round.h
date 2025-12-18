@@ -22,7 +22,7 @@ private:
     std::unordered_map<Player*, Guesses> players_map;
 
 public:
-    Round(std::vector<Player*> player_list, int num_players, time_t round_duration);
+    Round(std::vector<Player*> player_list, time_t round_duration);
 
     // czy runda jeszcze trwa czasowo
     bool is_round_active();

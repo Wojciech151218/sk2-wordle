@@ -18,7 +18,7 @@ bool Player::get_is_alive() {
 }
 
 // Obsługuje zakończenie rundy dla gracza
-void Player::handle_round() { //zamienione z : (bool status, int errors)
+void Player::handle_round() { 
     all_errors += round_errors;
 
     if (is_alive && round_errors >= 6) {
