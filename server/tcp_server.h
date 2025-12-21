@@ -5,6 +5,7 @@
 #include "server/router.h"
 
 #include <chrono>
+#include "server/web-socket/web_socket_pool.h"
 
 class TcpServer {
   private:
@@ -12,6 +13,7 @@ class TcpServer {
     ThreadPool thread_pool;
     Router router;
     std::chrono::milliseconds client_timeout;
+    WebSocketPool& web_socket_pool;
 
 
 

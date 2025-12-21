@@ -31,4 +31,7 @@ class TcpSocket {
     std::optional<int> get_port() const;
 
     std::chrono::milliseconds time_since_last_activity() const;
+    bool operator==(const TcpSocket& other) const {
+        return this->socket_fd == other.socket_fd;
+    }
 };

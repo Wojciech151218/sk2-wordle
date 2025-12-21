@@ -1,6 +1,6 @@
 #include "server/tcp_server.h"
 #include "server/utils/logger.h"
-
+#include "server/http/http_response.h"
 #include <string>
 #include <chrono>
 
@@ -8,7 +8,9 @@ TcpServer::TcpServer()
     : socket(TcpSocket()),
       thread_pool(10, [this](TcpSocket* client) { handle_client(client); }),
       router(Router()),
-      client_timeout(std::chrono::seconds(30)) {}
+      client_timeout(std::chrono::seconds(30)),
+      web_socket_pool(WebSocketPool::instance()) {
+    }
 
 TcpServer::~TcpServer() {
     socket.disconnect();
@@ -21,7 +23,7 @@ void TcpServer::start(int port, std::string address) {
     router.log_methods();
     socket.listen(address, port)
         .finally<void*>([&]() {
-            logger.debug("Listening for incoming connections...");
+            logger.info("Listening for incoming connections...");
             return nullptr;
         });
 }
@@ -42,6 +44,21 @@ void TcpServer::handle_client(TcpSocket* client_socket) {
         }
         HttpRequest http_request(request.unwrap());
 
+        if(http_request.get_method() == HttpMethod::GET && http_request.get_path() == "/ws") {
+            auto web_socket_result = WebSocketConnection::accept(*client_socket,http_request);
+            if(web_socket_result.is_err()) {
+                auto http_response = HttpResponse::from_json(
+                    Error("Failed to accept web socket", HttpStatusCode::BAD_REQUEST)
+                );
+                client_socket->send(http_response.to_string());
+                client_socket->disconnect();
+                break;
+            }
+            web_socket_pool.add(web_socket_result.unwrap());
+            continue;
+        }
+
+
         logger.debug("Received from client: " + http_request.to_string());
         auto response = router.handle_request(http_request);
         logger.request_result_info(http_request, response, client_socket->get_host(), client_socket->get_port());
@@ -58,7 +75,6 @@ void TcpServer::handle_client(TcpSocket* client_socket) {
 
     delete client_socket;
 }
-
 
 
 void TcpServer::run() {

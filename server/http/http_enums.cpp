@@ -15,6 +15,7 @@ HttpMethod parse_method(const std::string& method_str) {
 std::string get_status_message(HttpStatusCode status_code) {
     switch (status_code) {
         case HttpStatusCode::OK: return "OK";
+        case HttpStatusCode::SWITCHING_PROTOCOLS: return "Switching Protocols";
         case HttpStatusCode::BAD_REQUEST: return "Bad Request";
         case HttpStatusCode::NOT_FOUND: return "Not Found";
         case HttpStatusCode::METHOD_NOT_ALLOWED: return "Method Not Allowed";
@@ -55,6 +56,7 @@ std::string method_to_string(HttpMethod method) {
 std::string status_code_to_string(HttpStatusCode status_code) {
     switch (status_code) {
         case HttpStatusCode::OK: return "200";
+        case HttpStatusCode::SWITCHING_PROTOCOLS: return "101";
         case HttpStatusCode::BAD_REQUEST: return "400";
         case HttpStatusCode::NOT_FOUND: return "404";
         case HttpStatusCode::METHOD_NOT_ALLOWED: return "405";
