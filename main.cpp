@@ -42,6 +42,7 @@ int main(int argc, char* argv[]) {
 
     TcpServer server;
     server.add_method(join_method);
+    server.add_method(ready_method);
     server.add_method(leave_method);
     server.add_method(state_method);
     server.add_method(guess_method);

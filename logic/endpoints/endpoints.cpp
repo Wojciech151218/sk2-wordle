@@ -29,6 +29,14 @@ ServerMethod leave_method = ServerMethod<JoinRequest>("/join", HttpMethod::DELET
     return Result<nlohmann::json>(json);
 });
 
+ServerMethod ready_method = ServerMethod<StateRequest>("/ready", HttpMethod::POST, 
+    [](const StateRequest& request) {
+        // gracze sa ready
+        nlohmann::json json = game_state;
+        return Result<nlohmann::json>(json);
+    });
+
+
 ServerMethod state_method = ServerMethod<StateRequest>("/", HttpMethod::GET, 
 [](const StateRequest& request) {
     // pobiera stan gry dostepny dla gracza zwraca error jesli gracz nie jest w grze
