@@ -3,7 +3,7 @@
 #include <memory>
 #include "logic/game_state.h"
 
-GameState game_state = GameState(6,60);
+GameState game_state = GameState(60);
 
 ServerMethod join_method = ServerMethod<JoinRequest>("/join", HttpMethod::POST, 
 [](const JoinRequest& request) {

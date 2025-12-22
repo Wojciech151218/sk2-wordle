@@ -1,9 +1,8 @@
 #include "game_state.h"
 #include <ctime>
 
-GameState::GameState(int max_players, time_t round_duration)
-    : max_players(max_players),
-      round_end_time(0),
+GameState::GameState(time_t round_duration)
+    : round_end_time(0),
       round_duration(round_duration),
       game_start_time(0),
       players_list(),
@@ -12,9 +11,6 @@ GameState::GameState(int max_players, time_t round_duration)
 Result<GameState> GameState::add_player(const JoinRequest& request) {
     std::string player_name = request.player_name;
     // blokada duplikatów w lobby
-    if (players_list.size() >= max_players) {
-        return Error("Lobby is full", HttpStatusCode::FORBIDDEN);
-    }
     for (size_t i = 0; i < players_list.size(); ++i) {
         const Player& p = players_list[i];
         if (p.player_name == player_name) 

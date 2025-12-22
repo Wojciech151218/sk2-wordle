@@ -17,7 +17,6 @@
 */
 class GameState {
 private:
-    int max_players;        // maksymalna liczba graczy w LOBBY 
     time_t round_end_time;  // kiedy kończy się aktualna runda
     time_t round_duration;  // ile trwa jedna runda
     time_t game_start_time; // kiedy startuje gra
@@ -33,9 +32,9 @@ public:
     Result<GameState> set_ready(const StateRequest& request);
     bool all_ready_in_lobby() const;
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(GameState, max_players, round_end_time, round_duration, game_start_time, players_list, game)
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(GameState, round_end_time, round_duration, game_start_time, players_list, game)
 
-    GameState(int max_players, time_t round_duration);
+    GameState(time_t round_duration);
     
 
     // Dodaje gracza do lobby
