@@ -3,13 +3,14 @@
 #include <iostream>
 
 Player::Player(const std::string& name)
-    : player_name(name), round_errors(0), all_errors(0), is_alive(true) {}
+    : player_name(name), round_errors(0), all_errors(0), is_alive(true), is_ready(false) {}
 
 // Resetuje stan gracza na początkowy
 void Player::reset_state() {  
     round_errors = 0;
     all_errors = 0;
     is_alive = true;
+    is_ready = false;
 }
 
 // Zwraca, czy gracz jest żywy
@@ -30,6 +31,11 @@ void Player::handle_round() {
 // Ustawia, czy gracz jest żywy
 void Player::set_is_alive(bool status) {
     is_alive = status;
+}
+
+// Ustawia, czy gracz jest gotowy do rozpoczęcia rozgrywki
+void Player::set_is_ready(bool status) {
+    is_ready = status;
 }
 
 // Ustawia liczbę błędów w rundzie

@@ -30,6 +30,9 @@ private:
     
 
 public:
+    Result<GameState> set_ready(const StateRequest& request);
+    bool all_ready_in_lobby() const;
+
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(GameState, max_players, round_end_time, round_duration, game_start_time, players_list, game)
 
     GameState(int max_players, time_t round_duration);

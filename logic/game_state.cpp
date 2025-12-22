@@ -53,6 +53,9 @@ bool GameState::start_game() {
     // start tylko gdy w lobby jest min 3 graczy
     //if (players_list.size() < 1) return false;
 
+    // wszyscy muszą być ready
+    if (!all_ready_in_lobby()) return false;
+
     game_start_time = std::time(nullptr);
     round_end_time = game_start_time + round_duration;
 
@@ -92,4 +95,41 @@ Result<std::vector<WordleWord>> GameState::make_guess(const GuessRequest& reques
     }
 
     return game->make_guess(player_name, guess);
+}
+
+bool GameState::all_ready_in_lobby() const {
+    if (players_list.empty()) return false;
+
+    for (size_t i = 0; i < players_list.size(); ++i) {
+        const Player& p = players_list[i];
+        if (!p.is_ready) return false; // GameState jest friend Player, więc może czytać private
+    }
+    return true;
+}
+
+Result<GameState> GameState::set_ready(const StateRequest& request) {
+    const std::string player_name = request.player_name;
+
+    // jak gra już trwa, to READY w lobby nie ma sensu (albo zwróć "already started")
+    if (game.has_value()) {
+        return Error("Game already started", HttpStatusCode::FORBIDDEN);
+    }
+
+    // znajdź gracza w lobby i ustaw ready
+    for (size_t i = 0; i < players_list.size(); ++i) {
+        Player& p = players_list[i];
+        if (p.player_name == player_name) {
+            p.set_is_ready(true);
+
+            // jeśli wszyscy gotowi i jest min. liczba graczy -> start gry
+            const size_t MIN_PLAYERS = 3;
+            if (players_list.size() >= MIN_PLAYERS && all_ready_in_lobby()) {
+                start_game();
+            }
+
+            return Result<GameState>(*this);
+        }
+    }
+
+    return Error("Player not found in lobby", HttpStatusCode::NOT_FOUND);
 }

@@ -10,7 +10,7 @@ ServerMethod join_method = ServerMethod<JoinRequest>("/join", HttpMethod::POST,
     //gracz wchodzi do gry wchodzi do poczekalni jesli jego nick jest juz zajety to zwraca error
 
     auto result = game_state.add_player(request);
-    game_state.start_game(); //tymczasowo dla testow
+    //game_state.start_game(); //tymczasowo dla testow
 
     if (result.is_err()) {
         return Result<nlohmann::json>(result.unwrap_err());
@@ -19,7 +19,7 @@ ServerMethod join_method = ServerMethod<JoinRequest>("/join", HttpMethod::POST,
     return Result<nlohmann::json>(json);
 });
 
-ServerMethod leave_method = ServerMethod<JoinRequest>("/join", HttpMethod::DELETE, 
+ServerMethod leave_method = ServerMethod<JoinRequest>("/leave", HttpMethod::DELETE, 
 [](const JoinRequest& request) {
     auto result = game_state.remove_player(request);
     if (result.is_err()) {
@@ -29,12 +29,18 @@ ServerMethod leave_method = ServerMethod<JoinRequest>("/join", HttpMethod::DELET
     return Result<nlohmann::json>(json);
 });
 
-ServerMethod ready_method = ServerMethod<StateRequest>("/ready", HttpMethod::POST, 
-    [](const StateRequest& request) {
-        // gracze sa ready
-        nlohmann::json json = game_state;
-        return Result<nlohmann::json>(json);
-    });
+ServerMethod ready_method = ServerMethod<StateRequest>("/ready", HttpMethod::POST,
+[](const StateRequest& request) {
+    // ustaw gracza jako READY w lobby
+    auto result = game_state.set_ready(request);
+
+    if (result.is_err()) {
+        return Result<nlohmann::json>(result.unwrap_err());
+    }
+
+    nlohmann::json json = game_state;
+    return Result<nlohmann::json>(json);
+});
 
 
 ServerMethod state_method = ServerMethod<StateRequest>("/", HttpMethod::GET, 
