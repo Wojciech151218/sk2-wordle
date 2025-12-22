@@ -83,7 +83,8 @@ int Game::get_round() const {
 
 // Obsługa guess:  /////////!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   NIE WIEM CZY DOBRZE  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!///////////////////
 Result<std::vector<WordleWord>> Game::make_guess(const std::string& player_name,
-                                                 const std::string& guess)  {
+                                                 const std::string& guess,
+                                                 std::time_t client_ts) {
     if (rounds.empty()) {
         if (!start_round()) return Error("Failed to start round", HttpStatusCode::INTERNAL_SERVER_ERROR);
     }
@@ -96,5 +97,7 @@ Result<std::vector<WordleWord>> Game::make_guess(const std::string& player_name,
     if (!p) return Error("Player not found", HttpStatusCode::NOT_FOUND);
     if (!p->is_alive) return Error("Player eliminated", HttpStatusCode::FORBIDDEN);
 
-    return rounds.back().make_guess(p, guess);
+    // TU DODAJESZ client_ts
+    return rounds.back().make_guess(p, guess, client_ts);
 }
+

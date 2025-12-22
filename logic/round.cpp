@@ -43,9 +43,24 @@ bool Round::is_round_active() {
     - dodaje próbę do Guesses
     - jeśli próba była błędna (ADDED), zwiększa round_errors gracza
 */
-Result<std::vector<WordleWord>> Round::make_guess(Player* player, const std::string& guess) {
+Result<std::vector<WordleWord>> Round::make_guess(Player* player,
+                                                  const std::string& guess,
+                                                  std::time_t client_ts) {
     if (!player) return Error("Player not in round", HttpStatusCode::NOT_FOUND);
-    if (!is_round_active()) return Error("Round not active", HttpStatusCode::BAD_REQUEST);
+
+    // WALIDACJA po timestampie requestu:
+    // guess jest ważny tylko jeśli client_ts należy do [start, end)
+    if (client_ts < round_start_time || client_ts >= round_end_time) {
+        return Error("Guess timestamp not in current round time window",
+                     HttpStatusCode::BAD_REQUEST);
+    }
+
+    // (opcjonalnie) dalej możesz też bronić się czasem serwera:
+    // jeśli runda już minęła serwerowo -> odrzuć
+    if (!is_round_active()) {
+        return Error("Round not active", HttpStatusCode::BAD_REQUEST);
+    }
+
     if (!player->is_alive) return Error("Player not alive", HttpStatusCode::BAD_REQUEST);
 
     auto it = players_map.find(player);
@@ -67,10 +82,8 @@ Result<std::vector<WordleWord>> Round::make_guess(Player* player, const std::str
         }
     }
 
-    // ZWRACASZ CAŁĄ HISTORIĘ TEGO GRACZA W TEJ RUNDZIE
-    return Result<std::vector<WordleWord>>(g.get_history()); // kopia wektora
+    return Result<std::vector<WordleWord>>(g.get_history());
 }
-
 
 
     // CORRECT - brak user odgadł hasło ---- trzeba dopisać logike na to jak odgadł hasło ale to już po stronie klienta chyba

@@ -57,4 +57,6 @@ public:
     Result<std::vector<WordleWord>> make_guess(const GuessRequest& request);
 
 
+
+
 };

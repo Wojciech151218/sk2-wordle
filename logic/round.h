@@ -31,7 +31,9 @@ public:
 
     // gracz zgaduje:
     // - jeśli guess był błędny => round_errors++
-    Result<std::vector<WordleWord>> make_guess(Player* player, const std::string& guess);
+    Result<std::vector<WordleWord>> make_guess(Player* player,
+                                               const std::string& guess,
+                                               std::time_t client_ts);
 
 
 

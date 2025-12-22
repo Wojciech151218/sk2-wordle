@@ -69,9 +69,25 @@ void GameState::end_game() {
     // kończymy aktywną grę i przerzucamy graczy z gry do lobby (żeby mogli grać znowu)
     game = std::nullopt;
 
+    // jeśli nie dało się odpalić kolejnej rundy -> koniec gry
+    const bool next_started = game->end_round();
+    if (!next_started) {
+        // przerzuć graczy z gry do lobby
+        players_list = std::move(game->players_list);
 
-    round_end_time = 0;
-    game_start_time = 0;
+        // reset stanu graczy żeby mogli grać od nowa
+        for (auto& p : players_list) {
+            p.reset_state();
+        }
+
+        // wyczyść grę
+        game.reset();
+
+        // wyzeruj czasy w GameState
+        round_end_time = 0;
+        game_start_time = 0;
+        return;
+    }
 }
 
 
@@ -86,7 +102,7 @@ Result<std::vector<WordleWord>> GameState::make_guess(const GuessRequest& reques
     if (!game.has_value())
         return Error("Game not found", HttpStatusCode::NOT_FOUND);
 
-    return game->make_guess(request.player_name, request.guess);
+    return game->make_guess(request.player_name, request.guess, request.timestamp);
 }
 
 
