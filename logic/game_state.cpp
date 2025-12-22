@@ -86,12 +86,13 @@ Result<GameState> GameState::get_state(const StateRequest& request) const {
     return Result<GameState>(*this);
 }
 
-Result<WordleWord> GameState::make_guess(const GuessRequest& request) {
+Result<std::vector<WordleWord>> GameState::make_guess(const GuessRequest& request) {
     if (!game.has_value())
         return Error("Game not found", HttpStatusCode::NOT_FOUND);
 
     return game->make_guess(request.player_name, request.guess);
 }
+
 
 
 bool GameState::all_ready_in_lobby() const {

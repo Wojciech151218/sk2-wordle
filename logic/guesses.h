@@ -25,4 +25,6 @@ public:
 
     // czy gracz przegrał 
     bool is_lost();
+
+    const std::vector<WordleWord>& get_history() const { return guesses; }
 };

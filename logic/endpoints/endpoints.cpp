@@ -57,6 +57,7 @@ ServerMethod guess_method = ServerMethod<GuessRequest>("/guess", HttpMethod::POS
 
     nlohmann::json json;
     json["state"] = game_state;
-    json["guess_result"] = result.unwrap();  
-    return Result<nlohmann::json>(json); 
+    json["guess_result"] = result.unwrap();  //tablica WordleWord
+    return Result<nlohmann::json>(json);
 });
+

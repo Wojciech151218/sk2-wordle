@@ -55,6 +55,7 @@ public:
     Result<GameState> get_state(const StateRequest& request) const; //ta metoda zwraca stan gry w formacie json
 
     //Result<std::vector<WordleWord>> make_guess(const GuessRequest& request);//ta metoda przekazuje guess do aktualnej rundy
-    Result<WordleWord> make_guess(const GuessRequest& request);
+    Result<std::vector<WordleWord>> make_guess(const GuessRequest& request);
+
 
 };

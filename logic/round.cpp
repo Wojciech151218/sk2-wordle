@@ -43,7 +43,7 @@ bool Round::is_round_active() {
     - dodaje próbę do Guesses
     - jeśli próba była błędna (ADDED), zwiększa round_errors gracza
 */
-Result<WordleWord> Round::make_guess(Player* player, const std::string& guess) {
+Result<std::vector<WordleWord>> Round::make_guess(Player* player, const std::string& guess) {
     if (!player) return Error("Player not in round", HttpStatusCode::NOT_FOUND);
     if (!is_round_active()) return Error("Round not active", HttpStatusCode::BAD_REQUEST);
     if (!player->is_alive) return Error("Player not alive", HttpStatusCode::BAD_REQUEST);
@@ -58,7 +58,6 @@ Result<WordleWord> Round::make_guess(Player* player, const std::string& guess) {
     if (colored_res.is_err())
         return colored_res.unwrap_err();
 
-    // UWAGA: unwrap tylko raz
     WordleWord colored = colored_res.unwrap();
 
     if (!colored.is_green()) {
@@ -68,7 +67,8 @@ Result<WordleWord> Round::make_guess(Player* player, const std::string& guess) {
         }
     }
 
-    return Result<WordleWord>(std::move(colored));
+    // ZWRACASZ CAŁĄ HISTORIĘ TEGO GRACZA W TEJ RUNDZIE
+    return Result<std::vector<WordleWord>>(g.get_history()); // kopia wektora
 }
 
 
