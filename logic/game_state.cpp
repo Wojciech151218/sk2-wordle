@@ -46,8 +46,8 @@ bool GameState::start_game() {
     // gra już trwa
     if (game.has_value()) return false;
 
-    // start tylko gdy w lobby jest min 3 graczy
-    //if (players_list.size() < 1) return false;
+    //start tylko gdy w lobby jest min 3 graczy
+    if (players_list.size() < 1) return false;
 
     // wszyscy muszą być ready
     if (!all_ready_in_lobby()) return false;
