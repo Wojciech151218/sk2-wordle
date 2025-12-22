@@ -10,7 +10,6 @@ class WebSocketConnection {
 
     public:
     WebSocketConnection(TcpSocket socket);
-    ~WebSocketConnection();
 
     static Result<WebSocketConnection> accept(TcpSocket& socket,HttpRequest& request);
 

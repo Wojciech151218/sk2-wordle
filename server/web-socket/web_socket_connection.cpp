@@ -6,9 +6,6 @@
 WebSocketConnection::WebSocketConnection(TcpSocket socket) : socket(socket) {
 }
 
-WebSocketConnection::~WebSocketConnection() {
-    close();
-}
 
 
 Result<WebSocketConnection> WebSocketConnection::accept(TcpSocket& socket,HttpRequest& request){
