@@ -35,6 +35,6 @@ public:
                                                const std::string& guess,
                                                std::time_t client_ts);
 
-
+    void finalize_round();
 
 };

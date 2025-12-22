@@ -51,21 +51,27 @@ bool Game::start_round() {
 // Kończy aktualną rundę i w razie potrzeby startuje następną
 bool Game::end_round() {
 
-    // Każdy gracz podsumowuje rundę
+    // 1) ZAMKNIJ RUNDĘ: eliminuj wszystkich co nie zgadli do końca czasu
+    if (!rounds.empty()) {
+        rounds.back().finalize_round();
+    }
+
+    // 2) (opcjonalnie) statystyki / sumowanie błędów jak masz
     for (auto& p : players_list) {
         if (p.is_alive) {
             p.handle_round();
         }
     }
 
-    // Jeśli po podsumowaniu zostało <= 1 gracz, kończymy grę
+    // 3) Po eliminacjach sprawdź czy koniec gry
     if (check_if_game_is_over()) {
         return false;
     }
 
-    // W przeciwnym razie automatycznie startujemy kolejną rundę
+    // 4) Start kolejnej rundy
     return start_round();
 }
+
 
 // Gra się kończy gdy jest <= 1 żywy gracz
 bool Game::check_if_game_is_over() {
@@ -81,7 +87,7 @@ int Game::get_round() const {
 }
 
 
-// Obsługa guess:  /////////!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   NIE WIEM CZY DOBRZE  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!///////////////////
+// Obsługa guess:  /////////!!!!!!!!!!!!!!!   NIE WIEM CZY DOBRZE  !!!!!!!!!!!!!!!!!
 Result<std::vector<WordleWord>> Game::make_guess(const std::string& player_name,
                                                  const std::string& guess,
                                                  std::time_t client_ts) {

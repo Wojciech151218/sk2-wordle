@@ -26,5 +26,9 @@ public:
     // czy gracz przegrał 
     bool is_lost();
 
+    // potrzebne do historii letters w jsonie przy post servermethod
     const std::vector<WordleWord>& get_history() const { return guesses; }
+
+    //czy gracz wygrał (potrzebne by zobaczyć czy gracz nie powinien zostać wyeleminowany przez to że nie odgadł w timestamp window)
+    bool has_won() const;
 };

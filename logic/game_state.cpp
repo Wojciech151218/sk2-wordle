@@ -59,7 +59,7 @@ bool GameState::start_game() {
     game = Game(std::move(players_list), round_duration);
     players_list.clear();
 
-    // start pierwszej rundy
+    // start pierwszej rundyS
     game->start_round();
 
     return true;

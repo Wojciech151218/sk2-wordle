@@ -85,6 +85,19 @@ Result<std::vector<WordleWord>> Round::make_guess(Player* player,
     return Result<std::vector<WordleWord>>(g.get_history());
 }
 
-
     // CORRECT - brak user odgadł hasło ---- trzeba dopisać logike na to jak odgadł hasło ale to już po stronie klienta chyba
     // ERR -  zła długość / brak prób
+
+
+
+void Round::finalize_round() {
+    // Koniec rundy: przeżywa tylko ten, kto zgadł (ma przynajmniej jeden all-green)
+    for (auto& [player, guesses] : players_map) {
+        if (!player) continue;
+        if (!player->is_alive) continue; // już odpadł np. przez 6 błędów
+
+        if (!guesses.has_won()) {
+            player->is_alive = false;
+        }
+    }
+}

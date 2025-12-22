@@ -21,3 +21,11 @@ Result<WordleWord> Guesses::add_guess_word(const std::string& guess, const std::
     guesses.push_back(out);
     return Result<WordleWord>(out);
 }
+
+
+bool Guesses::has_won() const {
+    for (const auto& w : guesses) {
+        if (w.is_green()) return true;
+    }
+    return false;
+}
