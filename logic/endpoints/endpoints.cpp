@@ -50,13 +50,13 @@ ServerMethod state_method = ServerMethod<StateRequest>("/", HttpMethod::GET,
     return Result<nlohmann::json>(json);
 });
 
-ServerMethod guess_method = ServerMethod<GuessRequest>("/guess", HttpMethod::POST, 
-[](const GuessRequest& request) { 
-    //gracz zgaduje słowo zwraca nowy stan gry error jesli gracz nie jest w grze lub odpadl/w poczekalni
+ServerMethod guess_method = ServerMethod<GuessRequest>("/guess", HttpMethod::POST,
+[](const GuessRequest& request) {
     auto result = game_state.make_guess(request);
-    if (result.is_err()) {
-        return Result<nlohmann::json>(result.unwrap_err());
-    }
-    nlohmann::json json = game_state;
-    return Result<nlohmann::json>(json);
+    if (result.is_err()) return Result<nlohmann::json>(result.unwrap_err());
+
+    nlohmann::json json;
+    json["state"] = game_state;
+    json["guess_result"] = result.unwrap();  
+    return Result<nlohmann::json>(json); 
 });

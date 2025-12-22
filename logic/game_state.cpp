@@ -36,7 +36,7 @@ Result<GameState> GameState::add_player(const JoinRequest& request) {
 
 Result<GameState> GameState::remove_player(const JoinRequest& request) {
     std::string player_name = request.player_name;
-    // usuwamy TYLKO z lobby (poczekalni)
+    // usuwamy tylko z lobby (poczekalni)
     for (auto it = players_list.begin(); it != players_list.end(); ++it) {
         if (it->player_name == player_name) {
             players_list.erase(it);
@@ -86,16 +86,13 @@ Result<GameState> GameState::get_state(const StateRequest& request) const {
     return Result<GameState>(*this);
 }
 
-Result<std::vector<WordleWord>> GameState::make_guess(const GuessRequest& request) {
-    std::string player_name = request.player_name;
-    std::string guess = request.guess;
-
-    if (!game.has_value()) {
+Result<WordleWord> GameState::make_guess(const GuessRequest& request) {
+    if (!game.has_value())
         return Error("Game not found", HttpStatusCode::NOT_FOUND);
-    }
 
-    return game->make_guess(player_name, guess);
+    return game->make_guess(request.player_name, request.guess);
 }
+
 
 bool GameState::all_ready_in_lobby() const {
     if (players_list.empty()) return false;

@@ -20,7 +20,8 @@ public:
     Guesses(int max_guesses);
 
     // Dodaje próbę i koloruje litery na podstawie actual
-    Result<GuessResult> add_guess_word(std::string guess, std::string actual);
+    Result<WordleWord> add_guess_word(const std::string& guess, const std::string& actual);
+
 
     // czy gracz przegrał 
     bool is_lost();

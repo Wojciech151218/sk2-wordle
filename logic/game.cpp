@@ -82,23 +82,18 @@ int Game::get_round() const {
 
 
 // Obsługa guess:  /////////!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   NIE WIEM CZY DOBRZE  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!///////////////////
-Result<std::vector<WordleWord>> Game::make_guess(std::string player_name, std::string guess) {
-
-    // Jeśli nie ma aktywnej rundy, to uruchamiamy pierwszą
+Result<WordleWord> Game::make_guess(const std::string& player_name, const std::string& guess) {
     if (rounds.empty()) {
         if (!start_round()) return Error("Failed to start round", HttpStatusCode::INTERNAL_SERVER_ERROR);
     }
 
-    // Jeśli czas rundy minął, kończymy rundę (co odpali kolejną)
     if (!rounds.back().is_round_active()) {
-        end_round();
-        if (rounds.empty()) return Error("Failed to end round", HttpStatusCode::INTERNAL_SERVER_ERROR);
+        if (!end_round()) return Error("Failed to end round", HttpStatusCode::INTERNAL_SERVER_ERROR);
     }
 
-    // Szukamy gracza po nicku
     Player* p = find_player_ptr_by_name(player_name);
-    if (!p || !p->is_alive) return Error("Player not found", HttpStatusCode::NOT_FOUND);
+    if (!p) return Error("Player not found", HttpStatusCode::NOT_FOUND);
+    if (!p->is_alive) return Error("Player eliminated", HttpStatusCode::FORBIDDEN);
 
-    // Przekazujemy do aktualnej rundy: Round doda guess i ewentualnie zwiększy round_errors
-    rounds.back().make_guess(p, guess);
+    return rounds.back().make_guess(p, guess);
 }

@@ -43,24 +43,35 @@ bool Round::is_round_active() {
     - dodaje próbę do Guesses
     - jeśli próba była błędna (ADDED), zwiększa round_errors gracza
 */
-Result<Round> Round::make_guess(Player* player, std::string& guess) {
-    if (!player) return Error("Player not in round", HttpStatusCode::NOT_FOUND);                //gracz istnieje
-    if (!is_round_active()) return Error("Round not active", HttpStatusCode::BAD_REQUEST);     //czy runda trwa,
-    if (!player->is_alive) return Error("Player not alive", HttpStatusCode::BAD_REQUEST);      //gracz żyje
+Result<WordleWord> Round::make_guess(Player* player, const std::string& guess) {
+    if (!player) return Error("Player not in round", HttpStatusCode::NOT_FOUND);
+    if (!is_round_active()) return Error("Round not active", HttpStatusCode::BAD_REQUEST);
+    if (!player->is_alive) return Error("Player not alive", HttpStatusCode::BAD_REQUEST);
 
     auto it = players_map.find(player);
-    if (it == players_map.end()) return Error("Player not in round", HttpStatusCode::NOT_FOUND); //jesli gracz nie bierze udziału w rundzie
+    if (it == players_map.end())
+        return Error("Player not in round", HttpStatusCode::NOT_FOUND);
 
     Guesses& g = it->second;
 
-    if (g.is_lost()) return Error("Player lost", HttpStatusCode::BAD_REQUEST); // nie ma już prób
+    auto colored_res = g.add_guess_word(guess, word);
+    if (colored_res.is_err())
+        return colored_res.unwrap_err();
 
-    auto result = g.add_guess_word(guess, word);
-    if (result.is_err()) return Error(result.unwrap_err());
+    // UWAGA: unwrap tylko raz
+    WordleWord colored = colored_res.unwrap();
 
-    if (result.unwrap() == GuessResult::INCORRECT) {// jeśli próba była błędna (ADDED), zwiększa round_errors gracza
-        player->round_errors += 1; 
+    if (!colored.is_green()) {
+        player->round_errors += 1;
+        if (player->round_errors >= 6) {
+            player->is_alive = false;
+        }
     }
+
+    return Result<WordleWord>(std::move(colored));
+}
+
+
+
     // CORRECT - brak user odgadł hasło ---- trzeba dopisać logike na to jak odgadł hasło ale to już po stronie klienta chyba
     // ERR -  zła długość / brak prób
-}
