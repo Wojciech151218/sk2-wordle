@@ -45,12 +45,16 @@ void TcpServer::handle_client(TcpSocket* client_socket) {
         HttpRequest http_request(request.unwrap());
 
         if(http_request.get_method() == HttpMethod::GET && http_request.get_path() == "/ws") {
-            auto web_socket_result = WebSocketConnection::accept(*client_socket,http_request);
+            auto web_socket_result = WebSocketConnection::accept(
+                *client_socket,
+                http_request
+            ).log_debug<WebSocketConnection>();
+
             if(web_socket_result.is_err()) {
-                auto http_response = HttpResponse::from_json(
+                auto error_response = HttpResponse::from_json(
                     Error("Failed to accept web socket", HttpStatusCode::BAD_REQUEST)
                 );
-                client_socket->send(http_response.to_string());
+                client_socket->send(error_response.to_string());
                 client_socket->disconnect();
                 break;
             }

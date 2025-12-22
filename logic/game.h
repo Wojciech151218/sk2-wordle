@@ -49,6 +49,7 @@ public:
 
     // Sprawdza czy gra się skończyła (<= 1 żywy gracz)
     bool check_if_game_is_over();
+    
 
     int get_round() const;
 

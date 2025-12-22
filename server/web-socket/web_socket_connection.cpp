@@ -12,12 +12,16 @@ WebSocketConnection::~WebSocketConnection() {
 
 
 Result<WebSocketConnection> WebSocketConnection::accept(TcpSocket& socket,HttpRequest& request){
-    auto key = handshake_request(request);
-    if (key.is_err()) {
-        return Error("Failed to handshake");
+    Logger& logger = Logger::instance();
+    auto key_result = handshake_request(request);
+    if (key_result.is_err()) {
+        return Error("Failed to decode key from handshake request");
     }
-
-    auto response_result = socket.send(handshake_response(key.unwrap()).to_string());
+    auto key = key_result.unwrap();
+    logger.debug("Handshake successful with key: " + key);
+    auto raw_handshake_response = handshake_response(key).to_string();
+    logger.debug("Sending handshake response: " + raw_handshake_response);
+    auto response_result = socket.send(raw_handshake_response);
     if (response_result.is_err()) {
         return Error("Failed to send handshake response");
     }
