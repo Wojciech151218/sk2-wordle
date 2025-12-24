@@ -39,6 +39,7 @@ private:
 
 public:
     WebSocketFrame(const std::vector<uint8_t>& raw_frame);
+    WebSocketFrame(const std::string& raw_frame);
 
     static WebSocketFrame text(const nlohmann::json& json);
     static WebSocketFrame binary(const std::vector<uint8_t>& data);

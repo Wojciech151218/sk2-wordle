@@ -13,6 +13,13 @@
 TcpSocket::TcpSocket()
     : socket_fd(socket(AF_INET, SOCK_STREAM, 0)),
       last_activity(std::chrono::steady_clock::now()) {
+
+    Result<int>::from_bsd(
+        socket_fd,
+        "Failed to create socket"
+    ).log_error<int>();
+
+    
     int opt = 1;
     setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 }

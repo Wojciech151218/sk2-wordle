@@ -5,31 +5,33 @@
 #include "server/router.h"
 
 #include <chrono>
-#include "server/web-socket/web_socket_pool.h"
+#include <thread>
 
 class TcpServer {
-  private:
+  protected:
     TcpSocket socket;
     ThreadPool thread_pool;
     Router router;
     std::chrono::milliseconds client_timeout;
-    WebSocketPool& web_socket_pool;
+    std::thread server_thread;
+    virtual void run_loop();
+
 
 
 
   public:
     TcpServer();
-    ~TcpServer();
+    virtual ~TcpServer();
 
     void start(int port, std::string address);
     void stop();
     void run();
-    void handle_client(TcpSocket* socket);
-
+    virtual void handle_client(TcpSocket* socket);
     template <typename Body>
     void add_method(const ServerMethod<Body>& method) {
         router.add_method(method);
     }
     void set_client_timeout(std::chrono::milliseconds timeout);
     std::chrono::milliseconds get_client_timeout() const;
+
 };

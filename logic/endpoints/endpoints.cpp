@@ -2,6 +2,7 @@
 #include "server/server_method.h"
 #include <memory>
 #include "logic/game_state.h"
+#include "server/web-socket/web_socket_pool.h"
 
 GameState game_state = GameState(6,60);
 
@@ -41,7 +42,10 @@ ServerMethod state_method = ServerMethod<StateRequest>("/", HttpMethod::GET,
 [](const StateRequest& request) {
     // pobiera stan gry dostepny dla gracza zwraca error jesli gracz nie jest w grze
     nlohmann::json json = game_state;
-    return Result<nlohmann::json>(json);
+    // return Result<nlohmann::json>(json);
+
+    WebSocketPool::instance().broadcast_all(json);
+    return Result<nlohmann::json>(nlohmann::json());
 });
 
 ServerMethod guess_method = ServerMethod<GuessRequest>("/guess", HttpMethod::POST, 

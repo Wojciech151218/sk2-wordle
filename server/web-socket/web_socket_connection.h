@@ -19,5 +19,7 @@ class WebSocketConnection {
     bool operator==(const WebSocketConnection& other) const {
         return this->socket == other.socket;
     }
-   
+    TcpSocket get_socket() const {
+        return socket;
+    }
 };

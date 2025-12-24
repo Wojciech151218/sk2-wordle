@@ -82,6 +82,11 @@ WebSocketFrame::WebSocketFrame(const std::vector<uint8_t>& raw_frame) {
     }
 }
 
+WebSocketFrame::WebSocketFrame(const std::string& raw_frame) {
+    std::vector<uint8_t> raw_frame_vec(raw_frame.begin(), raw_frame.end());
+    *this = WebSocketFrame(raw_frame_vec);
+}
+
 // Static factory methods
 WebSocketFrame WebSocketFrame::text(const nlohmann::json& json) {
     WebSocketFrame ws;

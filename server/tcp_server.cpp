@@ -5,21 +5,19 @@
 #include <chrono>
 
 TcpServer::TcpServer()
-    : socket(TcpSocket()),
+    :
       thread_pool(10, [this](TcpSocket* client) { handle_client(client); }),
-      router(Router()),
-      client_timeout(std::chrono::seconds(30)),
-      web_socket_pool(WebSocketPool::instance()) {
-    }
+      client_timeout(std::chrono::seconds(30))
+    {}
 
 TcpServer::~TcpServer() {
-    socket.disconnect();
+    stop();
 }
 
 
 void TcpServer::start(int port, std::string address) {
     Logger& logger = Logger::instance();
-    logger.info("Starting HTTP/TCP server on " + address + ":" + std::to_string(port));
+    logger.info("Starting TCP server on " + address + ":" + std::to_string(port));
     router.log_methods();
     socket.listen(address, port)
         .finally<void*>([&]() {
@@ -29,8 +27,21 @@ void TcpServer::start(int port, std::string address) {
 }
 
 void TcpServer::stop() {
-    Logger::instance().info("Stopping TCP server");
+    if (!server_thread.joinable()) {
+        return;
+    }
+    
+    Logger::instance().info(
+        "Stopping TCP server on " + 
+        (socket.get_host().value_or("unknown") + 
+        ":" + 
+        std::to_string(socket.get_port().value_or(0)))
+    );
     socket.disconnect();
+    
+    if (server_thread.joinable()) {
+        server_thread.join();
+    }
 }
 
 void TcpServer::handle_client(TcpSocket* client_socket) {
@@ -43,24 +54,6 @@ void TcpServer::handle_client(TcpSocket* client_socket) {
             break;
         }
         HttpRequest http_request(request.unwrap());
-
-        if(http_request.get_method() == HttpMethod::GET && http_request.get_path() == "/ws") {
-            auto web_socket_result = WebSocketConnection::accept(
-                *client_socket,
-                http_request
-            ).log_debug<WebSocketConnection>();
-
-            if(web_socket_result.is_err()) {
-                auto error_response = HttpResponse::from_json(
-                    Error("Failed to accept web socket", HttpStatusCode::BAD_REQUEST)
-                );
-                client_socket->send(error_response.to_string());
-                client_socket->disconnect();
-                break;
-            }
-            web_socket_pool.add(web_socket_result.unwrap());
-            continue;
-        }
 
 
         logger.debug("Received from client: " + http_request.to_string());
@@ -82,18 +75,24 @@ void TcpServer::handle_client(TcpSocket* client_socket) {
 
 
 void TcpServer::run() {
+    if (server_thread.joinable()) {
+        Logger::instance().info("Server is already running");
+        return;
+    }
+    
+    server_thread = std::thread(&TcpServer::run_loop, this);
+}
+
+void TcpServer::run_loop() {
     Logger& logger = Logger::instance();
 
     while (true) {
         auto accept_result = socket.accept();
-        if (accept_result.is_err()) {
-            logger.error(accept_result.unwrap_err());
-            break;
-        }
+        if (accept_result.is_err()) break;
+        
         TcpSocket * client_socket = new TcpSocket(accept_result.unwrap());
         thread_pool.enqueue(client_socket);
-    }
-    
+    }   
 }
 
 void TcpServer::set_client_timeout(std::chrono::milliseconds timeout) {

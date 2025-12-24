@@ -8,6 +8,7 @@
 #include "logic/endpoints/endpoints.h"
 #include "server/utils/config.h"
 #include <memory>
+#include "server/web-socket/web_socket_server.h"
 
 using namespace std;
 
@@ -18,6 +19,12 @@ void print_usage(const char* program_name) {
     std::cout << "Usage: " << program_name << " <address> <port> \n" << std::endl;
 }
 }  // namespace
+
+void keep_alive() {
+    while (true) {
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
+}
 
 int main(int argc, char* argv[]) {
     if (argc != 3) {
@@ -48,7 +55,12 @@ int main(int argc, char* argv[]) {
     server.add_method(guess_method);
     server.start(port, address);
     server.run();
-    server.stop();
+
+    WebSocketServer web_socket_server;
+    web_socket_server.start(4000, address);
+    web_socket_server.run();
+
+    keep_alive();
 
     return 0;
 }
