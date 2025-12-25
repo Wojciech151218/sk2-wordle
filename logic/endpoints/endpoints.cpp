@@ -3,8 +3,20 @@
 #include <memory>
 #include "logic/game_state.h"
 #include "server/web-socket/web_socket_pool.h"
+#include "server/cron/cron.h"
+#include "server/utils/logger.h"
 
 GameState game_state = GameState(6,60);
+
+std::unique_ptr<Cron> get_game_cron() {
+    std::unique_ptr<Cron> cron = std::make_unique<Cron>();
+    cron->add_job([]() {
+        nlohmann::json json = game_state;
+        WebSocketPool::instance().broadcast_all(json);
+        Logger::instance().debug("Sending game state to all clients : " + json.dump());
+    }, std::chrono::seconds(1));
+    return cron;
+};
 
 ServerMethod join_method = ServerMethod<JoinRequest>("/join", HttpMethod::POST, 
 [](const JoinRequest& request) {

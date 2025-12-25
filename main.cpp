@@ -9,7 +9,8 @@
 #include "server/utils/config.h"
 #include <memory>
 #include "server/web-socket/web_socket_server.h"
-
+#include "server/cron/cron.h"
+#include "logic/endpoints/endpoints.h"
 using namespace std;
 
 
@@ -46,6 +47,9 @@ int main(int argc, char* argv[]) {
     options.error_enabled = true;
     options.use_colors = true;
     logger.configure(options);
+
+    auto game_cron = get_game_cron();
+    game_cron->start();
 
     TcpServer server;
     server.add_method(join_method);
