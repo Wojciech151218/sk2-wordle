@@ -28,31 +28,29 @@ Result<WebSocketConnection> WebSocketConnection::accept(TcpSocket& socket,HttpRe
 
 Result<void*> WebSocketConnection::send(const nlohmann::json& json) {
 
-    auto frame_json = WebSocketFrame::text(json).json();
-    if (frame_json.is_err()) {
-        return Error("Failed to convert JSON to frame");
-    }
+    auto frame_json = WebSocketFrame::text(json.dump());
+
     return socket.send(
-        frame_json.unwrap().dump()
+        frame_json.to_string()
     ).finally<void*>([&]() {
         return nullptr;
     });
 }
 
 Result<WebSocketFrame> WebSocketConnection::receive(){
-    return socket.receive()
-    .chain<nlohmann::json>([&](auto data ) {
-        try {
-            return Result<nlohmann::json>(nlohmann::json::parse(data));
-        } catch (const nlohmann::json::parse_error& e) {
-            return Result<nlohmann::json>(
-                Error("Failed to parse JSON: " + std::string(e.what()))
-            );
-        }
-    })
-    .chain<WebSocketFrame>([&](auto json ) {
-        return WebSocketFrame::text(json);
-    });
+    // return socket.receive()
+    // .chain<nlohmann::json>([&](auto data ) {
+    //     try {
+    //         return Result<nlohmann::json>(nlohmann::json::parse(data));
+    //     } catch (const nlohmann::json::parse_error& e) {
+    //         return Result<nlohmann::json>(
+    //             Error("Failed to parse JSON: " + std::string(e.what()))
+    //         );
+    //     }
+    // })
+    // .chain<WebSocketFrame>([&](auto json ) {
+    //     return WebSocketFrame::text(json);
+    // });
 }
 
 Result<void*> WebSocketConnection::close() {
@@ -62,4 +60,6 @@ Result<void*> WebSocketConnection::close() {
     });
 }
 
-
+std::string WebSocketConnection::get_info() const {
+    return socket.get_host().value() + ":" + std::to_string(socket.get_port().value());
+}

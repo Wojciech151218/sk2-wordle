@@ -4,6 +4,7 @@
 #include "server/web-socket/web_socket_connection.h"
 #include <vector>
 #include "server/thread_pool.h"
+#include "nlohmann/json.hpp"
 
 class WebSocketPool : public GlobalState<WebSocketPool> {
     private:

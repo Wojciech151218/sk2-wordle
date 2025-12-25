@@ -6,12 +6,12 @@
 WebSocketServer::WebSocketServer() : TcpServer(), web_socket_pool(WebSocketPool::instance()) {
 }
 
-void WebSocketServer::run_loop() {
-    while (true) {
-        auto accept_result = socket.accept();
-        if (accept_result.is_err()) break;
-    }
-}
+// void WebSocketServer::run_loop() {
+//     while (true) {
+//         auto accept_result = socket.accept();
+//         if (accept_result.is_err()) break;
+//     }
+// }
 
 void WebSocketServer::handle_client(TcpSocket* client_socket) {
     Logger& logger = Logger::instance();
@@ -42,12 +42,15 @@ void WebSocketServer::handle_client(TcpSocket* client_socket) {
                 break;
             }
             web_socket_pool.add(web_socket_result.unwrap());
-            break;
         }
         else{
             logger.debug("Handling Web Socket request");
-            auto web_socket_frame = WebSocketFrame(raw_request);
-            auto json = web_socket_frame.json();
+            auto web_socket_frame = WebSocketFrame::from_raw_data(raw_request);
+            if(web_socket_frame.is_err()) {
+                logger.error(web_socket_frame.unwrap_err());
+                continue;
+            }
+            auto json = web_socket_frame.unwrap().to_json();
 
             if(json.is_err()) {
                 logger.error(json.unwrap_err());
@@ -60,7 +63,7 @@ void WebSocketServer::handle_client(TcpSocket* client_socket) {
         }
 
     }
-
-    web_socket_pool.remove(*client_socket);
+    //todo
+    //web_socket_pool.remove(*client_socket);
 
 }

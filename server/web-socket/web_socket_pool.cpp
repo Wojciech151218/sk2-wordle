@@ -9,12 +9,16 @@ WebSocketPool::~WebSocketPool() {
 
 void WebSocketPool::add(const WebSocketConnection& connection) {
     atomic([&]() {
+        auto logger = &Logger::instance();
+        logger->debug("Adding connection to pool " + connection.get_info());
         connections.push_back(connection);
     });
 }
 
 void WebSocketPool::remove(const WebSocketConnection& connection) {
     atomic([&]() {
+        auto logger = &Logger::instance();
+        logger->debug("Removing connection from pool " + connection.get_info());
         connections.erase(
             std::remove(
                 connections.begin(),
@@ -29,23 +33,25 @@ void WebSocketPool::remove(const WebSocketConnection& connection) {
 
 void WebSocketPool::remove(const TcpSocket& connection_socket) {
     atomic([&]() {
+        auto logger = &Logger::instance();
+        logger->debug("Removing connection from pool " + connection_socket.get_host().value() + ":" + std::to_string(connection_socket.get_port().value()));
         connections.erase(
-            std::remove_if(
+            std::remove(
                 connections.begin(),
                 connections.end(),
-                [&](const WebSocketConnection& connection) {
-                    return connection.get_socket() == connection_socket;
-                }
+                connection_socket
             ),
             connections.end()
-        );
+        );   
     });
 }
 
 void WebSocketPool::broadcast_all(const nlohmann::json& json) {
     atomic([&]() {
+        auto logger = &Logger::instance();
         for (auto& connection : connections) {
                 connection.send(json).log_debug<void*>();
+                logger->debug("Broadcasted to connection: " + json.dump());
         }
     });
 }

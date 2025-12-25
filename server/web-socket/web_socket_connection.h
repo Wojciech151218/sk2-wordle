@@ -3,6 +3,7 @@
 #include "server/utils/result.h"
 
 #include "server/web-socket/web_socket_frame.h"
+#include "nlohmann/json.hpp"
 
 class WebSocketConnection {
   private:
@@ -10,7 +11,7 @@ class WebSocketConnection {
 
     public:
     WebSocketConnection(TcpSocket socket);
-
+    std::string get_info() const;
     static Result<WebSocketConnection> accept(TcpSocket& socket,HttpRequest& request);
 
     Result<void*> send(const nlohmann::json& json);

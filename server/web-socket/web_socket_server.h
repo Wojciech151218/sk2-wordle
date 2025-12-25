@@ -8,7 +8,7 @@ class WebSocketServer : public TcpServer{
 
     protected:
         void handle_client(TcpSocket* socket) override;
-        void run_loop() override;
+        //void run_loop() override;
 
 
     public:
