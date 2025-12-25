@@ -15,11 +15,6 @@ using namespace std;
 
 
 
-namespace {
-void print_usage(const char* program_name) {
-    std::cout << "Usage: " << program_name << " <address> <port> \n" << std::endl;
-}
-}  // namespace
 
 void keep_alive() {
     while (true) {
@@ -28,25 +23,10 @@ void keep_alive() {
 }
 
 int main(int argc, char* argv[]) {
-    if (argc != 3) {
-        print_usage(argv[0]);
-        return 1;
-    }
-
-    std::string address = argv[1];
-    int port = atoi(argv[2]);
-
-
     Config& config = Config::instance();
-    config.set_allowed_origin("http://localhost:5173");
+    config.load_config();
 
-    Logger& logger = Logger::instance();
-    Logger::Options options{};
-    options.info_enabled = true;
-    options.debug_enabled = true;
-    options.error_enabled = true;
-    options.use_colors = true;
-    logger.configure(options);
+    
 
     auto game_cron = get_game_cron();
     game_cron->start();
@@ -57,13 +37,18 @@ int main(int argc, char* argv[]) {
     server.add_method(leave_method);
     server.add_method(state_method);
     server.add_method(guess_method);
-    server.start(port, address);
+    server.start(
+        std::stoi(config.get_config("http_port").value()), 
+        config.get_config("address").value()
+    );
     server.run();
 
     WebSocketServer web_socket_server;
-    web_socket_server.start(4000, address);
+    web_socket_server.start(
+        std::stoi(config.get_config("websocket_port").value()), 
+        config.get_config("address").value()
+    );
     web_socket_server.run();
-
     keep_alive();
 
     return 0;

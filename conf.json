@@ -1,0 +1,11 @@
+{
+    "allowed_origin": "http://localhost:5173",
+    "http_port": "8080",
+    "address": "127.0.0.1",
+    "websocket_port": "4040",
+    "debug": "true",
+    "info": "true",
+    "warn": "true",
+    "error": "true",
+    "use_colors": "true"
+}

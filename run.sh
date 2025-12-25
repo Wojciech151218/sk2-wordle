@@ -11,11 +11,6 @@ if [[ "${1:-}" == "--debug" ]]; then
     shift
 fi
 
-if [[ $# -ne 2 ]]; then
-    echo "Usage: $0 [--debug] <address> <port>"
-    exit 1
-fi
-
 cmake -S "${project_dir}" -B "${build_dir}" -DCMAKE_BUILD_TYPE="${build_type}"
 cmake --build "${build_dir}" --target sieci_server
 
