@@ -1,69 +1,83 @@
 #include "server/web-socket/web_socket_server.h"
-#include "server/server_method.h"
+#include "server/utils/result.h"
+#include "server/web-socket/handshake.h"
+#include "server/http/http_request.h"
+#include <string>
+#include "server/web-socket/web_socket_frame.h"
 
 
+WebSocketServer::WebSocketServer() : TcpServer() {
 
-WebSocketServer::WebSocketServer() : TcpServer(), web_socket_pool(WebSocketPool::instance()) {
+    WebSocketPool::instance().set_connections(&connections);
 }
 
-// void WebSocketServer::run_loop() {
-//     while (true) {
-//         auto accept_result = socket.accept();
-//         if (accept_result.is_err()) break;
-//     }
-// }
 
-void WebSocketServer::handle_client(TcpSocket* client_socket) {
-    Logger& logger = Logger::instance();
+void WebSocketServer::start(int port, std::string address) {
+    Logger::instance().info("Starting WebSocket server on " + address + ":" + std::to_string(port));
+    TcpServer::start(port, address);
+}
 
-    while (true) {
-        auto request = client_socket->receive();
-        if (request.is_err()) {
-            client_socket->disconnect();
+Result<bool> WebSocketServer::handle_connected(TcpSocket& socket) {
+    socket.set_protocol_callback([&](std::string data) {
+        return true;
+    });
+    return TcpServer::handle_connected(socket);
+}
+
+void WebSocketServer::handle_state_change(TcpSocket& socket) {
+    switch (socket.get_connection_state()) {
+        case TcpSocket::ConnectionState::CONNECTED: {
+
+            auto handshake = socket.flush_recv();
+            HttpRequest http_request(handshake);
+
+            if (http_request.get_method() != HttpMethod::GET || http_request.get_path() != "/ws") {
+                socket.set_connection_state(TcpSocket::ConnectionState::CLOSING);
+                return;
+            }
+
+            auto client_key = handshake_request(http_request);
+            if (client_key.is_err()) {
+                socket.set_connection_state(TcpSocket::ConnectionState::CLOSING);
+                return;
+            }
+            auto response = handshake_response(client_key.unwrap());
+            socket.set_send_buffer(response.to_string());
+            socket.set_connection_state(TcpSocket::ConnectionState::WRITING);
+            socket.set_protocol_callback([&](std::string data) {
+                //todo: handle websocket frames
+                return true;
+            });
             break;
         }
-        auto raw_request = request.unwrap();
-        HttpRequest http_request(raw_request);
-
-        if(http_request.get_method() == HttpMethod::GET && http_request.get_path() == "/ws") {
-
-            logger.debug("Accepting web socket connection");
-            auto web_socket_result = WebSocketConnection::accept(
-                *client_socket,
-                http_request
-            ).log_debug();
-
-            if(web_socket_result.is_err()) {
-                auto error_response = HttpResponse::from_json(
-                    Error("Failed to accept web socket", HttpStatusCode::BAD_REQUEST)
-                );
-                client_socket->send(error_response.to_string());
-                client_socket->disconnect();
-                break;
-            }
-            web_socket_pool.add(web_socket_result.unwrap());
-        }
-        else{
-            logger.debug("Handling Web Socket request");
-            auto web_socket_frame = WebSocketFrame::from_raw_data(raw_request);
-            if(web_socket_frame.is_err()) {
-                logger.error(web_socket_frame.unwrap_err());
-                continue;
-            }
-            auto json = web_socket_frame.unwrap().to_json();
-
-            if(json.is_err()) {
-                logger.error(json.unwrap_err());
-                continue;
-            }
-            web_socket_pool.broadcast_all(json.unwrap());
+        case TcpSocket::ConnectionState::WRITING:
+            socket.set_connection_state(TcpSocket::ConnectionState::IDLE);
+            break;
             
-            //echo service todo
+        case TcpSocket::ConnectionState::IDLE:
+            socket.set_connection_state(TcpSocket::ConnectionState::READING);
+            break;
+        case TcpSocket::ConnectionState::READING: {
+            auto message = socket.flush_recv();
+            auto frame = WebSocketFrame::from_raw_data(message).log_error();
+            if (frame.is_err()) {
+                socket.set_connection_state(TcpSocket::ConnectionState::CLOSING);
+                return;
+            }
+            auto unmasked_frame = frame.unwrap().unmask().log_error();
+            if (unmasked_frame.is_err()) {
+                socket.set_connection_state(TcpSocket::ConnectionState::CLOSING);
+                return;
+            }
 
+            Logger::instance().debug("Received message: " + unmasked_frame.unwrap().to_string());
+            
+            socket.set_connection_state(TcpSocket::ConnectionState::IDLE);
+            break;
         }
-
+        
+        case TcpSocket::ConnectionState::CLOSING:
+            socket.set_connection_state(TcpSocket::ConnectionState::CLOSING);
+            break;
     }
-    //todo
-    //web_socket_pool.remove(*client_socket);
-
 }

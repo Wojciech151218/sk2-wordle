@@ -32,8 +32,12 @@ TcpSocket::TcpSocket(int socket_fd, const std::string& host, int port)
        port(port),
        socket_fd(socket_fd),
        last_activity(std::chrono::steady_clock::now()) {
+
     int opt = 1;
     setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+    // int flags = fcntl(socket_fd, F_GETFL, 0);
+    // fcntl(socket_fd, F_SETFL, flags | O_NONBLOCK);
+
 }
 
 
@@ -105,7 +109,7 @@ Result<bool> TcpSocket::send() {
     
 }
 
-Result<bool> TcpSocket::receive(std::function<bool(std::string)> protocol_callback) {
+Result<bool> TcpSocket::receive() {
     char buffer[1024];
    
 
@@ -116,8 +120,10 @@ Result<bool> TcpSocket::receive(std::function<bool(std::string)> protocol_callba
     )
     .chain<bool>([&](size_t result) {
         recv_buffer.append(buffer, result);
-
-        return protocol_callback(recv_buffer);
+        if (!protocol_callback) {
+            return Result<bool>(Error("Protocol callback not set"));
+        }
+        return Result<bool>(protocol_callback(recv_buffer));
     })
     .log_error();
 }
@@ -165,4 +171,8 @@ std::optional<std::string> TcpSocket::get_host() const {
 
 std::optional<int> TcpSocket::get_port() const {
     return port;
+}
+
+std::string TcpSocket::socket_info() const {
+    return  host.value_or("unknown") + ":" + std::to_string(port.value_or(0));
 }

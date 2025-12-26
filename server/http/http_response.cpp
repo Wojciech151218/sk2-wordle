@@ -91,3 +91,7 @@ HttpResponse HttpResponse::option_response(std::vector<HttpMethod> allowed_metho
 HttpStatusCode HttpResponse::get_status_code() const {
     return status_code;
 }
+
+bool HttpResponse::is_success() const {
+    return status_code == HttpStatusCode::OK || status_code == HttpStatusCode::NO_CONTENT;
+}

@@ -19,10 +19,13 @@ class TcpServer {
     void handle_client_task(TcpSocket* socket);
     virtual void handle_state_change(TcpSocket& socket) = 0;
 
-    virtual Result<bool> handle_idle(TcpSocket& socket) = 0;
-    virtual Result<bool> handle_writing(TcpSocket& socket) = 0;
-    virtual Result<bool> handle_reading(TcpSocket& socket) = 0;
-    virtual Result<bool> handle_closing(TcpSocket& socket) = 0;
+    virtual Result<bool> handle_connected(TcpSocket& socket);
+    virtual Result<bool> handle_idle(TcpSocket& socket);
+    virtual Result<bool> handle_writing(TcpSocket& socket);
+    virtual Result<bool> handle_reading(TcpSocket& socket);
+    virtual Result<bool> handle_closing(TcpSocket& socket);
+
+    
 
 
 

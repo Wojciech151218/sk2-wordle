@@ -5,10 +5,14 @@
 #include "server/server/server_method.h"
 #include "server/http/http_request.h"
 #include "server/http/http_response.h"
+#include "server/utils/result.h"
 
 class HttpServer : public TcpServer {
   protected:
     Router router;
+
+    Result<bool> handle_connected(TcpSocket& socket) override;
+    std::string get_response_info(std::string route_name,const HttpResponse& response, const TcpSocket& socket) const;
 
   public:
     HttpServer();
@@ -23,9 +27,5 @@ class HttpServer : public TcpServer {
 
     // Override virtual methods from TcpServer
     virtual void handle_state_change(TcpSocket& socket) override;
-    virtual Result<bool> handle_idle(TcpSocket& socket) override;
-    virtual Result<bool> handle_writing(TcpSocket& socket) override;
-    virtual Result<bool> handle_reading(TcpSocket& socket) override;
-    virtual Result<bool> handle_closing(TcpSocket& socket) override;
 };
 

@@ -9,6 +9,7 @@
 class TcpSocket {
   public: 
   enum class ConnectionState {
+    CONNECTED,
     IDLE,
     WRITING,
     READING,
@@ -20,6 +21,8 @@ class TcpSocket {
     std::optional<std::string> host;
     std::optional<int> port;
     std::chrono::steady_clock::time_point last_activity;
+    std::function<bool(std::string)> protocol_callback;
+  
 
     std::string recv_buffer;
     std::string send_buffer;
@@ -30,6 +33,10 @@ class TcpSocket {
 
     ConnectionState connection_state = ConnectionState::IDLE;
   public:
+
+    void set_protocol_callback(std::function<bool(std::string)> callback) {
+      protocol_callback = callback;
+    }
 
     ConnectionState get_connection_state() const {
       return connection_state;
@@ -47,7 +54,7 @@ class TcpSocket {
     void set_send_buffer(std::string data);
     Result<bool> send();
     
-    Result<bool> receive(std::function<bool(std::string)> protocol_callback);
+    Result<bool> receive();
     std::string flush_recv();
 
     
@@ -65,4 +72,5 @@ class TcpSocket {
     bool operator==(const TcpSocket& other) const {
         return this->socket_fd == other.socket_fd;
     }
+    std::string socket_info() const;
 };

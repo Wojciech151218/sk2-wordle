@@ -2,7 +2,7 @@
 #include "server/server/server_method.h"
 #include <memory>
 #include "logic/game_state.h"
-//#include "server/web-socket/web_socket_pool.h"
+#include "server/web-socket/web_socket_pool.h"
 #include "server/cron/cron.h"
 #include "server/utils/logger.h"
 
@@ -56,7 +56,7 @@ ServerMethod state_method = ServerMethod<StateRequest>("/", HttpMethod::GET,
     nlohmann::json json = game_state;
     // return Result<nlohmann::json>(json);
 
-    //WebSocketPool::instance().broadcast_all(json);
+    WebSocketPool::instance().broadcast_all(json);
     return Result<nlohmann::json>(game_state);
 });
 

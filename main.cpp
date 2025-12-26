@@ -8,7 +8,7 @@
 #include "logic/endpoints/endpoints.h"
 #include "server/utils/config.h"
 #include <memory>
-// #include "server/web-socket/web_socket_server.h"
+#include "server/web-socket/web_socket_server.h"
 #include "server/cron/cron.h"
 #include "logic/endpoints/endpoints.h"
 using namespace std;
@@ -43,12 +43,12 @@ int main(int argc, char* argv[]) {
     );
     server.run();
 
-    // WebSocketServer web_socket_server;
-    // web_socket_server.start(
-    //     std::stoi(config.get_config("websocket_port").value()), 
-    //     config.get_config("address").value()
-    // );
-    // web_socket_server.run();
+    WebSocketServer web_socket_server;
+    web_socket_server.start(
+        std::stoi(config.get_config("websocket_port").value()), 
+        config.get_config("address").value()
+    );
+    web_socket_server.run();
     keep_alive();
 
     return 0;

@@ -1,53 +1,40 @@
 #include "server/web-socket/web_socket_pool.h"
+#include "server/web-socket/web_socket_frame.h"
 
-WebSocketPool::WebSocketPool()  {
+WebSocketPool::WebSocketPool(std::vector<TcpSocket*> * connections) : connections(connections) {
 }
 
 WebSocketPool::~WebSocketPool() {
 }
+    
 
-
-void WebSocketPool::add(const TcpSocket& connection) {
-    atomic([&]() {
-        auto logger = &Logger::instance();
-        logger->debug("Adding connection to pool ");
-        connections.push_back(connection);
-    });
-}
-
-void WebSocketPool::remove(const TcpSocket& connection) {
-    atomic([&]() {
-        auto logger = &Logger::instance();
-        logger->debug("Removing connection from pool ");
-        connections.erase(
-            std::remove(
-                connections.begin(),
-                connections.end(),
-                connection
-            ),
-            connections.end()
-        );
-        
-    });
+void WebSocketPool::set_connections(std::vector<TcpSocket*> * connections) {
+    this->connections = connections;
 }
 
 void WebSocketPool::broadcast_all(const nlohmann::json& json) {
+    if (!connections) return;
     atomic([&]() {
         auto logger = &Logger::instance();
-        for (auto& connection : connections) {
-                //connection.send(json).log_debug();
-                logger->debug("Broadcasted to connection: " + json.dump());
+        for (auto& connection : *connections) {
+            auto frame = WebSocketFrame::text(json.dump());
+            
+            connection->set_send_buffer(frame.to_string());
+            connection->set_connection_state(TcpSocket::ConnectionState::WRITING);
+            connection->send();
+            logger->info("Broadcasted to connection: " + connection->socket_info());
         }
     });
 }
 
 bool WebSocketPool::is_socket_connected(const TcpSocket& socket) const {
-    atomic([&]() {
+    if (!connections) return false;
+    return atomic([&]() {
         return std::any_of(
-            connections.begin(),
-            connections.end(),
-            [&](const TcpSocket& connection) {
-                return connection == socket;
+            connections->begin(),
+            connections->end(),
+            [&](TcpSocket* connection) {
+                return connection != nullptr && *connection == socket;
             }
         );
     });

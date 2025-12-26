@@ -44,6 +44,27 @@ void TcpServer::stop() {
     }
 }
 
+Result<bool> TcpServer::handle_connected(TcpSocket& socket) {;
+    return handle_reading(socket);
+}
+
+Result<bool> TcpServer::handle_idle(TcpSocket& socket) {
+    return handle_reading(socket);
+}
+
+Result<bool> TcpServer::handle_writing(TcpSocket& socket) {
+    return socket.send();
+}
+
+Result<bool> TcpServer::handle_reading(TcpSocket& socket) {
+    return socket.receive();
+}
+
+Result<bool> TcpServer::handle_closing(TcpSocket& socket) {
+    socket.disconnect();
+    return Result<bool>(true);
+}
+
 
 
 bool TcpServer::stop_task_condition(TcpSocket& socket) {
@@ -56,6 +77,9 @@ void TcpServer::handle_client_task(TcpSocket* client_socket) {
     Result<bool> result = Result<bool>(Error("Invalid connection state"));
     do {
         switch (client_socket->get_connection_state()) {
+            case TcpSocket::ConnectionState::CONNECTED:
+                result = handle_connected(*client_socket);
+                break;
             case TcpSocket::ConnectionState::WRITING:
                 result = handle_writing(*client_socket);
                 break;
@@ -136,7 +160,7 @@ void TcpServer::run_loop() {
                 }
 
                 TcpSocket* client_socket = new TcpSocket(accept_result.unwrap());
-                client_socket->set_connection_state(TcpSocket::ConnectionState::IDLE);
+                client_socket->set_connection_state(TcpSocket::ConnectionState::CONNECTED);
                 connections.push_back(client_socket);
 
                 // Add client socket to epoll with edge-triggered mode
@@ -148,7 +172,6 @@ void TcpServer::run_loop() {
                     delete client_socket;
                     connections.pop_back();
                 }
-                logger.info("New connection accepted, fd: " + std::to_string(client_socket->get_fd()));
             }
             // Handle client socket events
             else {
@@ -165,7 +188,7 @@ void TcpServer::run_loop() {
 
                 // Handle close events
                 if (events[i].events & (EPOLLRDHUP | EPOLLHUP | EPOLLERR)) {
-                    logger.debug("Connection closed, fd: " + std::to_string(fd));
+                    logger.debug("Connection closed " );
                     epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, nullptr);
                     connections.erase(it);
                     client_socket->set_connection_state(TcpSocket::ConnectionState::CLOSING);

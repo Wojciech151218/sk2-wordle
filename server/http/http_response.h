@@ -23,6 +23,7 @@ class HttpResponse{
     HttpStatusCode get_status_code() const;
     std::string to_string() const;
     static HttpResponse option_response(std::vector<HttpMethod> allowed_methods);
+    bool is_success() const;
 
 
 };

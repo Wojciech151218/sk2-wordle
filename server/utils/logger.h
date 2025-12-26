@@ -44,6 +44,7 @@ class Logger : public GlobalState<Logger> {
     void info(const std::string& message) const;
     void debug(const std::string& message) const;
     void error(const Error& error) const;
+    void error(const std::string& message) const;
     void warn(const std::string& message) const;
     void warn(const Error& error) const;
     void log(Level level, const std::string& message) const;
