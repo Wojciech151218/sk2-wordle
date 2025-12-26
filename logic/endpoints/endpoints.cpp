@@ -1,8 +1,8 @@
 #include "logic/endpoints/request_bodies.h"
-#include "server/server_method.h"
+#include "server/server/server_method.h"
 #include <memory>
 #include "logic/game_state.h"
-#include "server/web-socket/web_socket_pool.h"
+//#include "server/web-socket/web_socket_pool.h"
 #include "server/cron/cron.h"
 #include "server/utils/logger.h"
 
@@ -12,7 +12,7 @@ std::unique_ptr<Cron> get_game_cron() {
     std::unique_ptr<Cron> cron = std::make_unique<Cron>();
     cron->add_job([]() {
         nlohmann::json json = game_state;
-        WebSocketPool::instance().broadcast_all(json);
+        //WebSocketPool::instance().broadcast_all(json);
         Logger::instance().debug("Sending game state to all clients : " + json.dump());
     }, std::chrono::seconds(1));
     return cron;
@@ -56,8 +56,8 @@ ServerMethod state_method = ServerMethod<StateRequest>("/", HttpMethod::GET,
     nlohmann::json json = game_state;
     // return Result<nlohmann::json>(json);
 
-    WebSocketPool::instance().broadcast_all(json);
-    return Result<nlohmann::json>(nlohmann::json());
+    //WebSocketPool::instance().broadcast_all(json);
+    return Result<nlohmann::json>(game_state);
 });
 
 ServerMethod guess_method = ServerMethod<GuessRequest>("/guess", HttpMethod::POST, 

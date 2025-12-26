@@ -17,7 +17,7 @@ class HttpResponse{
 
   public:
     HttpResponse(std::optional<std::string> body, HttpVersion http_version, HttpStatusCode status_code);
-    static HttpResponse from_json(Result<nlohmann::json> json);
+    static HttpResponse from_json(const Result<nlohmann::json> & json);
     HttpResponse add_header(const HttpHeader& header);
     HttpResponse add_cors_headers();
     HttpStatusCode get_status_code() const;

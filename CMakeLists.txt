@@ -22,7 +22,11 @@ add_subdirectory(external/nlohmann_json)
 find_package(OpenSSL REQUIRED)
 
 file(GLOB_RECURSE SIECI_SHARED_SOURCES
-    "${CMAKE_CURRENT_SOURCE_DIR}/server/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/server/server/*.cpp"
+    #"${CMAKE_CURRENT_SOURCE_DIR}/server/web-socket/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/server/http/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/server/utils/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/server/cron/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/logic/*.cpp"
 )
 

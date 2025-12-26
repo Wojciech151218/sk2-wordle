@@ -26,6 +26,9 @@ class Result {
     Result(const Error& error);
     Result(Error&& error);
 
+    Result(Result<T>&& other) noexcept = default;
+    Result(const Result<T>&) = delete;
+
     static Result<int> from_bsd(int value, const std::string& error_message);
 
     bool is_ok() const;
@@ -33,6 +36,14 @@ class Result {
     T unwrap(bool should_exit = true) const;
     T unwrap(bool should_exit = true);
     Error unwrap_err(bool should_exit = true) const;
+
+    Result<T>& operator=(Result<T>&& other) {
+        if (this != &other) {
+            right = std::move(other.right);
+            left = std::move(other.left);
+        }
+        return *this;
+    }
 
     template <typename U>
     Result<U> chain(Result<U> result) const;
@@ -51,14 +62,14 @@ class Result {
     template <typename U>
     Result<U> finally(const std::function<U(T)>& func) const;
 
-    template <typename U>
-    Result<U> log_error() const;
+    const Result<T>& log_error() const &;
+    Result<T> log_error() &&;
 
-    template <typename U>
-    Result<U> log_debug() const;
+    const Result<T>& log_debug() const &;
+    Result<T> log_debug() &&;
 
-    template <typename U>
-    Result<U> log_warn() const;
+    const Result<T>& log_warn() const &;
+    Result<T> log_warn() &&;
 };
 
 template <typename T>
@@ -173,8 +184,7 @@ inline Result<U> Result<T>::finally(const std::function<U(T)>& func) const {
 }
 
 template <typename T>
-template <typename U>
-inline Result<U> Result<T>::log_error() const {
+inline const Result<T>& Result<T>::log_error() const & {
     if (is_err()) {
         logger.error(left.value());
     }
@@ -182,8 +192,15 @@ inline Result<U> Result<T>::log_error() const {
 }
 
 template <typename T>
-template <typename U>
-inline Result<U> Result<T>::log_debug() const {
+inline Result<T> Result<T>::log_error() && {
+    if (is_err()) {
+        logger.error(left.value());
+    }
+    return std::move(*this);
+}
+
+template <typename T>
+inline const Result<T>& Result<T>::log_debug() const & {
     if (is_err()) {
         logger.debug(unwrap_err().get_message());
     }
@@ -191,10 +208,25 @@ inline Result<U> Result<T>::log_debug() const {
 }
 
 template <typename T>
-template <typename U>
-inline Result<U> Result<T>::log_warn() const {
+inline Result<T> Result<T>::log_debug() && {
+    if (is_err()) {
+        logger.debug(unwrap_err().get_message());
+    }
+    return std::move(*this);
+}
+
+template <typename T>
+inline const Result<T>& Result<T>::log_warn() const & {
     if (is_err()) {
         logger.warn(left.value());
     }
     return *this;
+}
+
+template <typename T>
+inline Result<T> Result<T>::log_warn() && {
+    if (is_err()) {
+        logger.warn(left.value());
+    }
+    return std::move(*this);
 }

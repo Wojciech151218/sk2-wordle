@@ -31,7 +31,7 @@ void WebSocketServer::handle_client(TcpSocket* client_socket) {
             auto web_socket_result = WebSocketConnection::accept(
                 *client_socket,
                 http_request
-            ).log_debug<WebSocketConnection>();
+            ).log_debug();
 
             if(web_socket_result.is_err()) {
                 auto error_response = HttpResponse::from_json(

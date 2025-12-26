@@ -10,7 +10,7 @@ HttpResponse::HttpResponse(std::optional<std::string> body, HttpVersion http_ver
     
 }
 
-HttpResponse HttpResponse::from_json(Result<nlohmann::json> json) {
+HttpResponse HttpResponse::from_json(const Result<nlohmann::json> & json) {
     if (json.is_err()) {
         Error error = json.unwrap_err(false);
         auto status = error.get_http_status_code();

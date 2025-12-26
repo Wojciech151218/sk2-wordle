@@ -7,18 +7,18 @@ WebSocketPool::~WebSocketPool() {
 }
 
 
-void WebSocketPool::add(const WebSocketConnection& connection) {
+void WebSocketPool::add(const TcpSocket& connection) {
     atomic([&]() {
         auto logger = &Logger::instance();
-        logger->debug("Adding connection to pool " + connection.get_info());
+        logger->debug("Adding connection to pool ");
         connections.push_back(connection);
     });
 }
 
-void WebSocketPool::remove(const WebSocketConnection& connection) {
+void WebSocketPool::remove(const TcpSocket& connection) {
     atomic([&]() {
         auto logger = &Logger::instance();
-        logger->debug("Removing connection from pool " + connection.get_info());
+        logger->debug("Removing connection from pool ");
         connections.erase(
             std::remove(
                 connections.begin(),
@@ -31,26 +31,11 @@ void WebSocketPool::remove(const WebSocketConnection& connection) {
     });
 }
 
-void WebSocketPool::remove(const TcpSocket& connection_socket) {
-    atomic([&]() {
-        auto logger = &Logger::instance();
-        logger->debug("Removing connection from pool " + connection_socket.get_host().value() + ":" + std::to_string(connection_socket.get_port().value()));
-        connections.erase(
-            std::remove(
-                connections.begin(),
-                connections.end(),
-                connection_socket
-            ),
-            connections.end()
-        );   
-    });
-}
-
 void WebSocketPool::broadcast_all(const nlohmann::json& json) {
     atomic([&]() {
         auto logger = &Logger::instance();
         for (auto& connection : connections) {
-                connection.send(json).log_debug<void*>();
+                //connection.send(json).log_debug();
                 logger->debug("Broadcasted to connection: " + json.dump());
         }
     });
@@ -61,8 +46,8 @@ bool WebSocketPool::is_socket_connected(const TcpSocket& socket) const {
         return std::any_of(
             connections.begin(),
             connections.end(),
-            [&](const WebSocketConnection& connection) {
-                return connection.get_socket() == socket;
+            [&](const TcpSocket& connection) {
+                return connection == socket;
             }
         );
     });

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "utils/result.h"
+#include "server/utils/result.h"
 #include "nlohmann/json.hpp"
 #include <memory>
 

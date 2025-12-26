@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "server/request_body.h"
+#include "server/http/request_body.h"
 #include <string>
 
 class JoinRequest : public RequestBody {

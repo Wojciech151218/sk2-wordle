@@ -6,9 +6,10 @@
 #include <type_traits>
 
 #include "server/http/http_enums.h"
-#include "server/request_body.h"
-#include "utils/error.h"
-#include "utils/result.h"
+#include "server/http/request_body.h"
+#include "server/utils/error.h"
+#include "server/utils/result.h"
+#include "nlohmann/json.hpp"
 
 class ServerMethodBase {
   public:

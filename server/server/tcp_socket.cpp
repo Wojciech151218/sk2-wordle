@@ -1,4 +1,4 @@
-#include "server/tcp_socket.h"
+#include "server/server/tcp_socket.h"
 
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -17,7 +17,7 @@ TcpSocket::TcpSocket()
     Result<int>::from_bsd(
         socket_fd,
         "Failed to create socket"
-    ).log_error<int>();
+    ).log_error();
 
     
     int opt = 1;
@@ -38,7 +38,7 @@ Result<int> TcpSocket::check_connected(std::string message) const {
     return Result<int>::from_bsd(
         socket_fd,
         message
-    ).log_error<int>();
+    ).log_error();
 }
 
 Result<TcpSocket> TcpSocket::listen(const std::string& host, int port, int max_connections) {
@@ -62,31 +62,9 @@ Result<TcpSocket> TcpSocket::listen(const std::string& host, int port, int max_c
         .finally<TcpSocket>([&]() {
             return *this;
         })
-        .log_error<TcpSocket>();
+        .log_error();
 }
 
-Result<TcpSocket> TcpSocket::connect(const std::string& host, int port) {
-    this->host = host;
-    this->port = port;
-    struct sockaddr_in server_addr;
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(port);
-
-
-    return check_connected("Failed to create socket")
-        .chain_from_bsd(
-        ::inet_pton(AF_INET, host.c_str(), &server_addr.sin_addr),
-        "Failed to convert host to IP address"
-        )
-        .chain_from_bsd(
-            ::connect(socket_fd, (struct sockaddr*)&server_addr, sizeof(server_addr)), 
-            "Failed to connect to socket"
-        )
-        .finally<TcpSocket>([&]() {
-            return *this;
-        })
-        .log_error<TcpSocket>();
-}
 
 Result<void*> TcpSocket::disconnect() {
     return check_connected("Socket not connected")
@@ -100,63 +78,51 @@ Result<void*> TcpSocket::disconnect() {
         port.reset();
         return nullptr;
     })
-    .log_error<void*>();
+    .log_error();
 }
 
-Result<size_t> TcpSocket::send(const std::string& data) {
+void TcpSocket::set_send_buffer(std::string data) {
+    send_buffer = data;
+}
+
+Result<bool> TcpSocket::send() {
+ 
+    
     return check_connected("Socket not connected")
     .chain_from_bsd(
-        ::send(this->socket_fd, data.c_str(), data.size(), 0), 
+        ::send(this->socket_fd, send_buffer.c_str(), send_buffer.size(), 0), 
         "Failed to send data"
-    ).finally<size_t>([&](size_t result) {
+    ).finally<bool>([&](int bytes_sent) {
         touch();
-        return result;
+        send_buffer.erase(0, bytes_sent);
+        return send_buffer.empty();
     })
-    .log_error<size_t>();
+    .log_error();
 
     
 }
 
-Result<std::string> TcpSocket::receive(std::optional<std::chrono::milliseconds> timeout) {
+Result<bool> TcpSocket::receive(std::function<bool(std::string)> protocol_callback) {
     char buffer[1024];
+   
 
     return check_connected("Socket not connected")
-    .chain<std::string>([&](auto) {
-        while (true) {
-            if (timeout.has_value()) {
-                struct pollfd fd;
-                fd.fd = this->socket_fd;
-                fd.events = POLLIN;
-                int poll_result = ::poll(&fd, 1, static_cast<int>(timeout->count()));
-                if (poll_result == 0) {
-                    return Result<std::string>(Error("Receive timeout"))
-                        .log_warn<std::string>();
-                }
-                if (poll_result < 0) {
-                    if (errno == EINTR) {
-                        continue;
-                    }
-                    return Result<std::string>(Error("Failed to wait for data"))
-                        .log_error<std::string>();
-                }
-            }
+    .chain_from_bsd(
+        ::recv(this->socket_fd, buffer, 1024, 0), 
+        "Failed to send data"
+    )
+    .chain<bool>([&](size_t result) {
+        recv_buffer.append(buffer, result);
 
-            int bytes_read = ::recv(this->socket_fd, buffer, sizeof(buffer), 0);
-            if (bytes_read < 0) {
-                if (errno == EINTR) {
-                    continue;
-                }
-                return Result<std::string>(Error("Failed to receive data"))
-                    .log_error<std::string>();
-            }
-            if (bytes_read == 0) {
-                return Result<std::string>(Error("Client disconnected"))
-                    .log_warn<std::string>();
-            }
-            touch();
-            return Result<std::string>(std::string(buffer, bytes_read));
-        }
-    });
+        return protocol_callback(recv_buffer);
+    })
+    .log_error();
+}
+
+std::string TcpSocket::flush_recv() {
+    auto data = recv_buffer;
+    recv_buffer.clear();
+    return data;
 }
 
 Result<TcpSocket> TcpSocket::accept() {
@@ -187,6 +153,9 @@ std::chrono::milliseconds TcpSocket::time_since_last_activity() const {
     );
 }
 
+int TcpSocket::get_fd() const {
+    return socket_fd;
+}
 std::optional<std::string> TcpSocket::get_host() const {
     return host;
 }

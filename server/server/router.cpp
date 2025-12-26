@@ -1,6 +1,6 @@
-#include "server/router.h"
+#include "server/server/router.h"
 #include "server/http/http_request.h"
-#include "utils/error.h"
+#include "server/utils/error.h"
 
 Router::Router() {}
 
@@ -59,6 +59,7 @@ HttpResponse Router::handle_request(const HttpRequest& http_request) {
 
     const ServerMethodBase* method = method_result.unwrap();
     auto response = method->handle_request(http_request.get_body());
+    
     return HttpResponse::from_json(response);
 }
 
