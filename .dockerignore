@@ -1,0 +1,9 @@
+.vscode
+.git
+.gitignore
+.dockerignore
+artifacts/
+build/
+client/
+todo
+debug.sh

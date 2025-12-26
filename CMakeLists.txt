@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(sieci_projekt LANGUAGES CXX)
+project(wordle-server LANGUAGES CXX)
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set(default_build_type "Debug")
@@ -30,13 +30,13 @@ file(GLOB_RECURSE SIECI_SHARED_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/logic/*.cpp"
 )
 
-add_executable(sieci_server
+add_executable(wordle-server
     main.cpp
     ${SIECI_SHARED_SOURCES}
 )
 
 
-set(PROJECT_TARGETS sieci_server server_test)
+set(PROJECT_TARGETS wordle-server)
 
 foreach(target_name IN LISTS PROJECT_TARGETS)
     if(TARGET ${target_name})
