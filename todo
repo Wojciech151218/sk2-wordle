@@ -1,5 +1,2 @@
-zmienic tcp::receive na dwie funckje jedna ktora oczeka/poinformuje o przyjsciu wiadomosci (powinno zwrocic socket klienta)
-i jej wlasciwy odbior + serwer moze nie odebrac calej wiadomosci
-web_socket_pool moze powinien dziedziczyc po thread pool
-plik konfoiguracyjny
-serwer powinien utrzymywac polaczenia z klientami
+- dodac obsluge nieblokujacych socketów 
+- dodac obslugiwanie ponownego odczytu wiadomości na podstawie protokolu (ws frame i http)

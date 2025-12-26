@@ -12,9 +12,9 @@ std::unique_ptr<Cron> get_game_cron() {
     std::unique_ptr<Cron> cron = std::make_unique<Cron>();
     cron->add_job([]() {
         nlohmann::json json = game_state;
-        //WebSocketPool::instance().broadcast_all(json);
         Logger::instance().debug("Sending game state to all clients : " + json.dump());
-    }, std::chrono::seconds(1));
+        WebSocketPool::instance().broadcast_all(json);
+    }, std::chrono::seconds(60));
     return cron;
 };
 

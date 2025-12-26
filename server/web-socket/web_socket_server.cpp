@@ -44,6 +44,7 @@ void WebSocketServer::handle_state_change(TcpSocket& socket) {
             auto response = handshake_response(client_key.unwrap());
             socket.set_send_buffer(response.to_string());
             socket.set_connection_state(TcpSocket::ConnectionState::WRITING);
+            Logger::instance().info("Handshake successful for connection: " + socket.socket_info());
             socket.set_protocol_callback([&](std::string data) {
                 //todo: handle websocket frames
                 return true;
@@ -55,8 +56,6 @@ void WebSocketServer::handle_state_change(TcpSocket& socket) {
             break;
             
         case TcpSocket::ConnectionState::IDLE:
-            socket.set_connection_state(TcpSocket::ConnectionState::READING);
-            break;
         case TcpSocket::ConnectionState::READING: {
             auto message = socket.flush_recv();
             auto frame = WebSocketFrame::from_raw_data(message).log_error();
@@ -64,13 +63,8 @@ void WebSocketServer::handle_state_change(TcpSocket& socket) {
                 socket.set_connection_state(TcpSocket::ConnectionState::CLOSING);
                 return;
             }
-            auto unmasked_frame = frame.unwrap().unmask().log_error();
-            if (unmasked_frame.is_err()) {
-                socket.set_connection_state(TcpSocket::ConnectionState::CLOSING);
-                return;
-            }
-
-            Logger::instance().debug("Received message: " + unmasked_frame.unwrap().to_string());
+            auto payload = frame.unwrap().payload_as_string();
+            Logger::instance().debug("Received message: " + payload);
             
             socket.set_connection_state(TcpSocket::ConnectionState::IDLE);
             break;

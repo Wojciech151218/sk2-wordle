@@ -65,7 +65,6 @@ class WebSocketFrame {
             WsCloseCode code = WsCloseCode::NormalClosure,
             const std::string& reason = ""
         );
-        Result<WebSocketFrame> unmask();
         Result<nlohmann::json> to_json() const;
 
         // Serialization

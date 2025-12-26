@@ -141,22 +141,7 @@ WebSocketFrame WebSocketFrame::close(WsCloseCode code, const std::string& reason
 // Masking/Unmasking
 // ============================================================================
 
-Result<WebSocketFrame> WebSocketFrame::unmask() {
-    if (!masked) {
-        return Error("WebSocket frame is not masked");
-    }
 
-    WebSocketFrame unmasked_frame = *this;
-    
-    // Apply XOR mask to payload
-    for (size_t i = 0; i < unmasked_frame.payload.size(); ++i) {
-        unmasked_frame.payload[i] ^= masking_key[i % 4];
-    }
-    
-    unmasked_frame.masked = false;
-    
-    return unmasked_frame;
-}
 
 // ============================================================================
 // Serialization

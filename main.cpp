@@ -28,8 +28,8 @@ int main(int argc, char* argv[]) {
 
     
 
-    // auto game_cron = get_game_cron();
-    // game_cron->start();
+    auto game_cron = get_game_cron();
+    game_cron->start();
 
     HttpServer server;
     server.add_method(join_method);
