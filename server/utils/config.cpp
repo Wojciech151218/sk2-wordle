@@ -22,7 +22,7 @@ void Config::load_config() {
             Logger::instance().warn("Could not open conf.json, using default config");
             atomic([&]() {
                 config = {
-                    {"allowed_origin", "*"}
+                    {"allowed_origin", "http://localhost:5173"}
                 };
             });
             return;
@@ -66,7 +66,7 @@ void Config::set_logger_options() {
     Logger& logger = Logger::instance();
     Logger::Options options{};
     options.info_enabled = get_config("info").value_or("true") == "true";
-    options.debug_enabled = get_config("debug").value_or("true") == "true";
+    options.debug_enabled = get_config("debug").value_or("false") == "true";
     options.error_enabled = get_config("error").value_or("true") == "true";
     options.warn_enabled = get_config("warn").value_or("true") == "true";
     options.use_colors = get_config("use_colors").value_or("true") == "true";

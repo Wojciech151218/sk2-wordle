@@ -3,10 +3,10 @@
     "http_port": "8080",
     "address": "0.0.0.0",
     "websocket_port": "4040",
-    "debug": "true",
+    "debug": "false",
     "info": "true", 
     "warn": "true",
     "error": "true",
     "use_colors": "true",
-    "mock" : "true"
+    "mock" : "false"
 } 

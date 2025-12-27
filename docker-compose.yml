@@ -11,13 +11,18 @@ services:
       - "4040:4040"  # WebSocket server port
     volumes:
       - ./conf.json:/app/conf.json:ro
+      - ./CMakeLists.txt:/app/CMakeLists.txt:ro
+      - ./external:/app/external:ro
+      - ./server:/app/server:ro
+      - ./logic:/app/logic:ro
+      - ./main.cpp:/app/main.cpp:ro
     environment:
       - BUILD_TYPE=Release
     networks:
       - wordle_network
 
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      test: ["CMD", "curl", "-f", "-X", "GET", "http://0.0.0.0:8080/health", "-H", "Content-Type: application/json", "-d", "{}"]
       interval: 30s
       timeout: 10s
       retries: 3
