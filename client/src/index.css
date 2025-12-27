@@ -1,39 +1,91 @@
+/* ============================================================================
+   ROOT & THEME VARIABLES
+   ============================================================================ */
+
 :root {
+  /* Fonts */
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* Dark Theme Colors */
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  /* Theme Colors */
+  --primary-color: #646cff;
+  --primary-hover: #535bf2;
+  --secondary-bg: #1a1a1a;
+  --border-color: rgba(255, 255, 255, 0.1);
+  --success-color: #4ade80;
+  --warning-color: #fbbf24;
+  --danger-color: #f87171;
+  --text-primary: rgba(255, 255, 255, 0.87);
+  --text-secondary: rgba(255, 255, 255, 0.6);
+
+  /* Wordle Colors */
+  --tile-green: #538d4e;
+  --tile-yellow: #b59f3b;
+  --tile-gray: #3a3a3c;
+  --tile-empty: #121213;
+  --tile-border: #3a3a3c;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+/* ============================================================================
+   BASE ELEMENTS
+   ============================================================================ */
+
+* {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
   min-width: 320px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+#root {
+  width: 100%;
   min-height: 100vh;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+a {
+  font-weight: 500;
+  color: var(--primary-color);
+  text-decoration: inherit;
 }
+
+a:hover {
+  color: var(--primary-hover);
+}
+
+h1 {
+  font-size: 2.5em;
+  line-height: 1.1;
+  margin: 0.5em 0;
+}
+
+h2 {
+  font-size: 1.8em;
+  margin: 0.5em 0;
+}
+
+h3 {
+  font-size: 1.3em;
+  margin: 0.5em 0;
+}
+
+/* ============================================================================
+   BUTTONS
+   ============================================================================ */
 
 button {
   border-radius: 8px;
@@ -42,27 +94,737 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: var(--secondary-bg);
+  color: var(--text-primary);
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition: all 0.25s;
 }
-button:hover {
-  border-color: #646cff;
+
+button:hover:not(:disabled) {
+  border-color: var(--primary-color);
+  transform: translateY(-1px);
 }
+
+button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 button:focus,
 button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
 }
+
+.btn {
+  min-width: 120px;
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--primary-hover);
+}
+
+.btn-secondary {
+  background-color: var(--secondary-bg);
+  border: 1px solid var(--border-color);
+}
+
+.btn-large {
+  padding: 0.8em 1.5em;
+  font-size: 1.1em;
+  min-width: 180px;
+}
+
+/* ============================================================================
+   INPUTS
+   ============================================================================ */
+
+input {
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  padding: 0.8em 1em;
+  font-size: 1em;
+  font-family: inherit;
+  background-color: var(--secondary-bg);
+  color: var(--text-primary);
+  transition: border-color 0.25s;
+  width: 100%;
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================================================
+   SCREENS
+   ============================================================================ */
+
+.screen {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+}
+
+.screen-content {
+  max-width: 800px;
+  width: 100%;
+}
+
+.screen-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-size: 1.1em;
+}
+
+/* ============================================================================
+   STATE DISPLAY (Shared by Join and Lobby)
+   ============================================================================ */
+
+.state-display {
+  background-color: var(--secondary-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 0.5em 1em;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.9em;
+  margin-bottom: 1rem;
+}
+
+.status-running {
+  background-color: var(--success-color);
+  color: #000;
+}
+
+.status-waiting {
+  background-color: var(--warning-color);
+  color: #000;
+}
+
+.status-disconnected {
+  background-color: var(--danger-color);
+  color: #fff;
+}
+
+.status-loading {
+  background-color: var(--text-secondary);
+  color: #000;
+}
+
+.status-ready {
+  background-color: var(--success-color);
+  color: #000;
+}
+
+.status-not-ready {
+  background-color: var(--warning-color);
+  color: #000;
+}
+
+.status-message {
+  color: var(--text-secondary);
+}
+
+.info-section {
+  margin-top: 1.5rem;
+}
+
+.info-section h3 {
+  color: var(--text-primary);
+  margin-bottom: 0.8rem;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+}
+
+.info-label {
+  color: var(--text-secondary);
+}
+
+.info-value {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.players-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.player-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+}
+
+.player-name {
+  font-weight: 500;
+}
+
+.ready-badge,
+.alive-badge {
+  padding: 0.3em 0.6em;
+  border-radius: 12px;
+  font-size: 0.85em;
+  font-weight: 600;
+}
+
+.ready-badge.ready {
+  background-color: var(--success-color);
+  color: #000;
+}
+
+.ready-badge.not-ready {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary);
+}
+
+.alive-badge.alive {
+  background-color: var(--success-color);
+  color: #000;
+}
+
+.alive-badge.eliminated {
+  background-color: var(--danger-color);
+  color: #fff;
+}
+
+.empty-state {
+  color: var(--text-secondary);
+  text-align: center;
+  padding: 1rem;
+}
+
+/* ============================================================================
+   JOIN SCREEN
+   ============================================================================ */
+
+.join-form-container {
+  background-color: var(--secondary-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 2rem;
+}
+
+.join-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.error-message {
+  padding: 0.8rem;
+  background-color: rgba(248, 113, 113, 0.2);
+  border: 1px solid var(--danger-color);
+  border-radius: 6px;
+  color: var(--danger-color);
+  font-size: 0.9em;
+}
+
+/* ============================================================================
+   LOBBY SCREEN
+   ============================================================================ */
+
+.lobby-actions {
+  background-color: var(--secondary-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 2rem;
+}
+
+.player-status {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.lobby-info {
+  text-align: center;
+  margin-top: 1.5rem;
+  color: var(--text-secondary);
+}
+
+.lobby-info .hint {
+  font-size: 0.9em;
+  margin-top: 0.5rem;
+}
+
+/* ============================================================================
+   GAME SCREEN
+   ============================================================================ */
+
+.game-screen {
+  padding: 0;
+}
+
+.game-layout {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+  gap: 0;
+}
+
+.game-sidebar {
+  width: 300px;
+  background-color: var(--secondary-bg);
+  border-right: 1px solid var(--border-color);
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.game-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 2rem;
+  align-items: center;
+  overflow-y: auto;
+}
+
+.game-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.game-header h1 {
+  margin-bottom: 0.5rem;
+  font-size: 2em;
+}
+
+.game-info {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.info-badge {
+  padding: 0.5em 1em;
+  background-color: var(--secondary-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+.game-over-banner,
+.eliminated-banner {
+  text-align: center;
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+}
+
+.game-over-banner {
+  background-color: rgba(74, 222, 128, 0.2);
+  border: 2px solid var(--success-color);
+}
+
+.eliminated-banner {
+  background-color: rgba(248, 113, 113, 0.2);
+  border: 2px solid var(--danger-color);
+}
+
+.wordle-container {
+  width: 100%;
+  max-width: 500px;
+}
+
+.game-actions {
+  margin-top: 2rem;
+  text-align: center;
+}
+
+/* ============================================================================
+   PLAYER STATS
+   ============================================================================ */
+
+.player-stats {
+  width: 100%;
+}
+
+.stats-header {
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.stats-header h3 {
+  margin: 0;
+}
+
+.alive-count {
+  color: var(--text-secondary);
+  font-size: 0.9em;
+  margin-top: 0.3rem;
+}
+
+.stats-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.stat-card {
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1rem;
+  transition: all 0.2s;
+}
+
+.stat-card-current {
+  background-color: rgba(100, 108, 255, 0.15);
+  border-color: var(--primary-color);
+}
+
+.stat-card-eliminated {
+  opacity: 0.6;
+}
+
+.stat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.stat-name {
+  font-weight: 600;
+  font-size: 1em;
+}
+
+.stat-status {
+  font-size: 1.2em;
+}
+
+.stat-status.alive {
+  color: var(--success-color);
+}
+
+.stat-status.eliminated {
+  color: var(--danger-color);
+}
+
+.stat-details {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.85em;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-label {
+  color: var(--text-secondary);
+  font-size: 0.9em;
+}
+
+.stat-value {
+  color: var(--text-primary);
+  font-weight: 700;
+  font-size: 1.1em;
+}
+
+/* ============================================================================
+   WORDLE BOARD
+   ============================================================================ */
+
+.wordle-board {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 1.5rem;
+}
+
+.wordle-row {
+  display: flex;
+  gap: 5px;
+  justify-content: center;
+}
+
+.wordle-tile {
+  width: 62px;
+  height: 62px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2em;
+  font-weight: bold;
+  border: 2px solid var(--tile-border);
+  border-radius: 4px;
+  text-transform: uppercase;
+  transition: all 0.2s;
+}
+
+.tile-empty {
+  background-color: var(--tile-empty);
+  border-color: var(--tile-border);
+}
+
+.tile-filled {
+  background-color: var(--tile-empty);
+  border-color: var(--text-secondary);
+  animation: pop 0.1s;
+}
+
+.tile-green {
+  background-color: var(--tile-green);
+  border-color: var(--tile-green);
+  animation: flip 0.5s;
+}
+
+.tile-yellow {
+  background-color: var(--tile-yellow);
+  border-color: var(--tile-yellow);
+  animation: flip 0.5s;
+}
+
+.tile-gray {
+  background-color: var(--tile-gray);
+  border-color: var(--tile-gray);
+  animation: flip 0.5s;
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes flip {
+  0% {
+    transform: rotateX(0);
+  }
+  50% {
+    transform: rotateX(90deg);
+  }
+  100% {
+    transform: rotateX(0);
+  }
+}
+
+/* ============================================================================
+   GAME KEYBOARD
+   ============================================================================ */
+
+.game-keyboard {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 1rem 0;
+}
+
+.keyboard-row {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+
+.keyboard-key {
+  min-width: 43px;
+  height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2em;
+  font-weight: bold;
+  padding: 0;
+  border-radius: 4px;
+  text-transform: uppercase;
+  border: none;
+}
+
+.key-special {
+  min-width: 65px;
+  font-size: 0.85em;
+}
+
+.key-unused {
+  background-color: #818384;
+}
+
+.key-unused:hover:not(:disabled) {
+  background-color: #9a9a9c;
+}
+
+.key-gray {
+  background-color: var(--tile-gray);
+}
+
+.key-yellow {
+  background-color: var(--tile-yellow);
+}
+
+.key-green {
+  background-color: var(--tile-green);
+}
+
+/* ============================================================================
+   RESPONSIVE DESIGN
+   ============================================================================ */
+
+@media (max-width: 1024px) {
+  .game-layout {
+    flex-direction: column;
+  }
+
+  .game-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .wordle-tile {
+    width: 52px;
+    height: 52px;
+    font-size: 1.6em;
+  }
+
+  .keyboard-key {
+    min-width: 36px;
+    height: 48px;
+    font-size: 1em;
+  }
+
+  .key-special {
+    min-width: 55px;
+  }
+}
+
+@media (max-width: 640px) {
+  .screen {
+    padding: 1rem;
+  }
+
+  .game-main {
+    padding: 1rem;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+  }
+
+  .wordle-tile {
+    width: 45px;
+    height: 45px;
+    font-size: 1.4em;
+  }
+
+  .keyboard-key {
+    min-width: 30px;
+    height: 42px;
+    font-size: 0.9em;
+  }
+
+  .key-special {
+    min-width: 48px;
+    font-size: 0.7em;
+  }
+}
+
+/* ============================================================================
+   LIGHT MODE
+   ============================================================================ */
 
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
     background-color: #ffffff;
+    --text-primary: #213547;
+    --text-secondary: rgba(33, 53, 71, 0.6);
+    --secondary-bg: #f9f9f9;
+    --border-color: rgba(0, 0, 0, 0.1);
+    --tile-empty: #ffffff;
+    --tile-border: #d3d6da;
+    --tile-gray: #787c7e;
+    --tile-yellow: #c9b458;
+    --tile-green: #6aaa64;
   }
+
   a:hover {
     color: #747bff;
   }
+
   button {
     background-color: #f9f9f9;
+  }
+
+  .key-unused {
+    background-color: #d3d6da;
+  }
+
+  .key-unused:hover:not(:disabled) {
+    background-color: #c3c6ca;
   }
 }
