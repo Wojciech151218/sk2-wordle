@@ -1,10 +1,19 @@
 #include "server/http/http_server.h"
+#include "server/http/request_body.h"
 #include "server/utils/logger.h"
 #include "server/http/http_request.h"
 #include "server/http/http_response.h"
 #include <string>
+#include "server/server/server_method.h"
 
-HttpServer::HttpServer() : TcpServer() {}
+HttpServer::HttpServer() : TcpServer() {
+    router.add_method(
+        ServerMethod<EmptyRequestBody>("/health", HttpMethod::GET, 
+                [](const EmptyRequestBody& request) {
+            return Result<nlohmann::json>(nlohmann::json{{"status", "ok"}});
+        })
+    );
+}
 
 HttpServer::~HttpServer() {}
 

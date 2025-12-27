@@ -12,10 +12,10 @@ if [[ "${1:-}" == "--debug" ]]; then
 fi
 
 cmake -S "${project_dir}" -B "${build_dir}" -DCMAKE_BUILD_TYPE="${build_type}"
-cmake --build "${build_dir}" --target sieci_server
+cmake --build "${build_dir}" --target wordle-server
 
 if [[ ${#debugger[@]} -gt 0 ]]; then
-    exec "${debugger[@]}" "${build_dir}/sieci_server" "$@"
+    exec "${debugger[@]}" "${build_dir}/wordle-server" "$@"
 else
-    exec "${build_dir}/sieci_server" "$@"
+    exec "${build_dir}/wordle-server" "$@"
 fi

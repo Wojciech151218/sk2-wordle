@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: dockerfile
-    container_name: sieci_server
+    container_name: wordle_server
     ports:
       - "8080:8080"  # HTTP server port
       - "4040:4040"  # WebSocket server port
@@ -14,20 +14,21 @@ services:
     environment:
       - BUILD_TYPE=Release
     networks:
-      - sieci_network
-    restart: unless-stopped
+      - wordle_network
+
     healthcheck:
-      test: ["CMD", "timeout", "1", "bash", "-c", "echo > /dev/tcp/localhost/8080 || exit 1"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
+    restart: unless-stopped
 
   client:
     build:
       context: ./client
       dockerfile: dockerfile
-    container_name: sieci_client
+    container_name: wordle_client
     ports:
       - "5173:5173"  # Vite dev server port
     environment:
@@ -47,9 +48,9 @@ services:
       server:
         condition: service_healthy
     networks:
-      - sieci_network
+      - wordle_network
     restart: unless-stopped
 
 networks:
-  sieci_network:
+  wordle_network:
     driver: bridge

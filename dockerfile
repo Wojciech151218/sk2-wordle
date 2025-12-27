@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y \
     g++ \
     make \
     libssl-dev \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy CMakeLists.txt and external dependencies first for better caching
@@ -49,9 +50,7 @@ COPY conf.json /app/conf.json
 # Expose ports
 EXPOSE 8080 4040
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD timeout 1 bash -c "echo > /dev/tcp/localhost/8080" || exit 1
+
 
 # Run the server
 CMD ["./wordle-server"]

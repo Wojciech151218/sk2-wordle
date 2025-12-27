@@ -4,8 +4,9 @@
     "address": "0.0.0.0",
     "websocket_port": "4040",
     "debug": "true",
-    "info": "true",
+    "info": "true", 
     "warn": "true",
     "error": "true",
-    "use_colors": "true"
-}
+    "use_colors": "true",
+    "mock" : "true"
+} 
