@@ -6,7 +6,7 @@
 #include "server/cron/cron.h"
 #include "server/utils/logger.h"
 
-GameState game_state = GameState(6,60);
+GameState game_state = GameState(60);
 
 std::unique_ptr<Cron> get_game_cron() {
     std::unique_ptr<Cron> cron = std::make_unique<Cron>();
@@ -23,7 +23,7 @@ ServerMethod join_method = ServerMethod<JoinRequest>("/join", HttpMethod::POST,
     //gracz wchodzi do gry wchodzi do poczekalni jesli jego nick jest juz zajety to zwraca error
 
     auto result = game_state.add_player(request);
-    game_state.start_game(); //tymczasowo dla testow
+    //game_state.start_game(); //tymczasowo dla testow
 
     if (result.is_err()) {
         return Result<nlohmann::json>(result.unwrap_err());
@@ -32,7 +32,7 @@ ServerMethod join_method = ServerMethod<JoinRequest>("/join", HttpMethod::POST,
     return Result<nlohmann::json>(json);
 });
 
-ServerMethod leave_method = ServerMethod<JoinRequest>("/join", HttpMethod::DELETE, 
+ServerMethod leave_method = ServerMethod<JoinRequest>("/leave", HttpMethod::DELETE, 
 [](const JoinRequest& request) {
     auto result = game_state.remove_player(request);
     if (result.is_err()) {
@@ -42,12 +42,18 @@ ServerMethod leave_method = ServerMethod<JoinRequest>("/join", HttpMethod::DELET
     return Result<nlohmann::json>(json);
 });
 
-ServerMethod ready_method = ServerMethod<StateRequest>("/ready", HttpMethod::POST, 
-    [](const StateRequest& request) {
-        // gracze sa ready
-        nlohmann::json json = game_state;
-        return Result<nlohmann::json>(json);
-    });
+ServerMethod ready_method = ServerMethod<StateRequest>("/ready", HttpMethod::POST,
+[](const StateRequest& request) {
+    // ustaw gracza jako READY w lobby
+    auto result = game_state.set_ready(request);
+
+    if (result.is_err()) {
+        return Result<nlohmann::json>(result.unwrap_err());
+    }
+
+    nlohmann::json json = game_state;
+    return Result<nlohmann::json>(json);
+});
 
 
 ServerMethod state_method = ServerMethod<StateRequest>("/", HttpMethod::GET, 
@@ -60,13 +66,14 @@ ServerMethod state_method = ServerMethod<StateRequest>("/", HttpMethod::GET,
     return Result<nlohmann::json>(game_state);
 });
 
-ServerMethod guess_method = ServerMethod<GuessRequest>("/guess", HttpMethod::POST, 
-[](const GuessRequest& request) { 
-    //gracz zgaduje słowo zwraca nowy stan gry error jesli gracz nie jest w grze lub odpadl/w poczekalni
+ServerMethod guess_method = ServerMethod<GuessRequest>("/guess", HttpMethod::POST,
+[](const GuessRequest& request) {
     auto result = game_state.make_guess(request);
-    if (result.is_err()) {
-        return Result<nlohmann::json>(result.unwrap_err());
-    }
-    nlohmann::json json = game_state;
+    if (result.is_err()) return Result<nlohmann::json>(result.unwrap_err());
+
+    nlohmann::json json;
+    json["state"] = game_state;
+    json["guess_result"] = result.unwrap();  //tablica WordleWord
     return Result<nlohmann::json>(json);
 });
+

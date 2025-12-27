@@ -68,6 +68,10 @@ Result<std::unique_ptr<RequestBody>> StateRequest::validate(const nlohmann::json
 }
 
 Result<std::unique_ptr<RequestBody>> GuessRequest::validate(const nlohmann::json& json) {
+    if (!json.contains("player_name")) return Error("player_name field is missing", HttpStatusCode::BAD_REQUEST);
+    if (!json.contains("timestamp"))   return Error("timestamp field is missing", HttpStatusCode::BAD_REQUEST);
+
+
     if (!json.contains("guess")) {
         return Error("guess field is missing", HttpStatusCode::BAD_REQUEST);
     }

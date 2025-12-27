@@ -51,21 +51,27 @@ bool Game::start_round() {
 // Kończy aktualną rundę i w razie potrzeby startuje następną
 bool Game::end_round() {
 
-    // Każdy gracz podsumowuje rundę
+    // 1) ZAMKNIJ RUNDĘ: eliminuj wszystkich co nie zgadli do końca czasu
+    if (!rounds.empty()) {
+        rounds.back().finalize_round();
+    }
+
+    // 2) (opcjonalnie) statystyki / sumowanie błędów jak masz
     for (auto& p : players_list) {
         if (p.is_alive) {
             p.handle_round();
         }
     }
 
-    // Jeśli po podsumowaniu zostało <= 1 gracz, kończymy grę
+    // 3) Po eliminacjach sprawdź czy koniec gry
     if (check_if_game_is_over()) {
         return false;
     }
 
-    // W przeciwnym razie automatycznie startujemy kolejną rundę
+    // 4) Start kolejnej rundy
     return start_round();
 }
+
 
 // Gra się kończy gdy jest <= 1 żywy gracz
 bool Game::check_if_game_is_over() {
@@ -81,24 +87,23 @@ int Game::get_round() const {
 }
 
 
-// Obsługa guess:  /////////!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   NIE WIEM CZY DOBRZE  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!///////////////////
-Result<std::vector<WordleWord>> Game::make_guess(std::string player_name, std::string guess) {
-
-    // Jeśli nie ma aktywnej rundy, to uruchamiamy pierwszą
+// Obsługa guess:  /////////!!!!!!!!!!!!!!!   NIE WIEM CZY DOBRZE  !!!!!!!!!!!!!!!!!
+Result<std::vector<WordleWord>> Game::make_guess(const std::string& player_name,
+                                                 const std::string& guess,
+                                                 std::time_t client_ts) {
     if (rounds.empty()) {
         if (!start_round()) return Error("Failed to start round", HttpStatusCode::INTERNAL_SERVER_ERROR);
     }
 
-    // Jeśli czas rundy minął, kończymy rundę (co odpali kolejną)
     if (!rounds.back().is_round_active()) {
-        end_round();
-        if (rounds.empty()) return Error("Failed to end round", HttpStatusCode::INTERNAL_SERVER_ERROR);
+        if (!end_round()) return Error("Failed to end round", HttpStatusCode::INTERNAL_SERVER_ERROR);
     }
 
-    // Szukamy gracza po nicku
     Player* p = find_player_ptr_by_name(player_name);
-    if (!p || !p->is_alive) return Error("Player not found", HttpStatusCode::NOT_FOUND);
+    if (!p) return Error("Player not found", HttpStatusCode::NOT_FOUND);
+    if (!p->is_alive) return Error("Player eliminated", HttpStatusCode::FORBIDDEN);
 
-    // Przekazujemy do aktualnej rundy: Round doda guess i ewentualnie zwiększy round_errors
-    rounds.back().make_guess(p, guess);
+    // TU DODAJESZ client_ts
+    return rounds.back().make_guess(p, guess, client_ts);
 }
+

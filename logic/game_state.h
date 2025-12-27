@@ -17,7 +17,6 @@
 */
 class GameState {
 private:
-    int max_players;        // maksymalna liczba graczy w LOBBY 
     time_t round_end_time;  // kiedy kończy się aktualna runda
     time_t round_duration;  // ile trwa jedna runda
     time_t game_start_time; // kiedy startuje gra
@@ -30,9 +29,12 @@ private:
     
 
 public:
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(GameState, max_players, round_end_time, round_duration, game_start_time, players_list, game)
+    Result<GameState> set_ready(const StateRequest& request);
+    bool all_ready_in_lobby() const;
 
-    GameState(int max_players, time_t round_duration);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(GameState, round_end_time, round_duration, game_start_time, players_list, game)
+
+    GameState(time_t round_duration);
     
 
     // Dodaje gracza do lobby
@@ -51,7 +53,10 @@ public:
 
     Result<GameState> get_state(const StateRequest& request) const; //ta metoda zwraca stan gry w formacie json
 
-    Result<std::vector<WordleWord>> make_guess(const GuessRequest& request);//ta metoda przekazuje guess do aktualnej rundy
+    //Result<std::vector<WordleWord>> make_guess(const GuessRequest& request);//ta metoda przekazuje guess do aktualnej rundy
+    Result<std::vector<WordleWord>> make_guess(const GuessRequest& request);
+
+
 
 
 };

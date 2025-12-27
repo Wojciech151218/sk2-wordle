@@ -45,3 +45,6 @@ foreach(target_name IN LISTS PROJECT_TARGETS)
     endif()
 endforeach()
 
+# dodane testowo
+target_compile_options(sieci_server PRIVATE -fsanitize=address,undefined -fno-omit-frame-pointer)
+target_link_options(sieci_server PRIVATE -fsanitize=address,undefined)

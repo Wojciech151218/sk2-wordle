@@ -1,9 +1,8 @@
 #include "game_state.h"
 #include <ctime>
 
-GameState::GameState(int max_players, time_t round_duration)
-    : max_players(max_players),
-      round_end_time(0),
+GameState::GameState(time_t round_duration)
+    : round_end_time(0),
       round_duration(round_duration),
       game_start_time(0),
       players_list(),
@@ -12,9 +11,6 @@ GameState::GameState(int max_players, time_t round_duration)
 Result<GameState> GameState::add_player(const JoinRequest& request) {
     std::string player_name = request.player_name;
     // blokada duplikatów w lobby
-    if (players_list.size() >= max_players) {
-        return Error("Lobby is full", HttpStatusCode::FORBIDDEN);
-    }
     for (size_t i = 0; i < players_list.size(); ++i) {
         const Player& p = players_list[i];
         if (p.player_name == player_name) 
@@ -36,7 +32,7 @@ Result<GameState> GameState::add_player(const JoinRequest& request) {
 
 Result<GameState> GameState::remove_player(const JoinRequest& request) {
     std::string player_name = request.player_name;
-    // usuwamy TYLKO z lobby (poczekalni)
+    // usuwamy tylko z lobby (poczekalni)
     for (auto it = players_list.begin(); it != players_list.end(); ++it) {
         if (it->player_name == player_name) {
             players_list.erase(it);
@@ -50,8 +46,11 @@ bool GameState::start_game() {
     // gra już trwa
     if (game.has_value()) return false;
 
-    // start tylko gdy w lobby jest min 3 graczy
-    //if (players_list.size() < 1) return false;
+    //start tylko gdy w lobby jest min 3 graczy
+    if (players_list.size() < 1) return false;
+
+    // wszyscy muszą być ready
+    if (!all_ready_in_lobby()) return false;
 
     game_start_time = std::time(nullptr);
     round_end_time = game_start_time + round_duration;
@@ -60,7 +59,7 @@ bool GameState::start_game() {
     game = Game(std::move(players_list), round_duration);
     players_list.clear();
 
-    // start pierwszej rundy
+    // start pierwszej rundyS
     game->start_round();
 
     return true;
@@ -70,9 +69,25 @@ void GameState::end_game() {
     // kończymy aktywną grę i przerzucamy graczy z gry do lobby (żeby mogli grać znowu)
     game = std::nullopt;
 
+    // jeśli nie dało się odpalić kolejnej rundy -> koniec gry
+    const bool next_started = game->end_round();
+    if (!next_started) {
+        // przerzuć graczy z gry do lobby
+        players_list = std::move(game->players_list);
 
-    round_end_time = 0;
-    game_start_time = 0;
+        // reset stanu graczy żeby mogli grać od nowa
+        for (auto& p : players_list) {
+            p.reset_state();
+        }
+
+        // wyczyść grę
+        game.reset();
+
+        // wyzeruj czasy w GameState
+        round_end_time = 0;
+        game_start_time = 0;
+        return;
+    }
 }
 
 
@@ -84,12 +99,47 @@ Result<GameState> GameState::get_state(const StateRequest& request) const {
 }
 
 Result<std::vector<WordleWord>> GameState::make_guess(const GuessRequest& request) {
-    std::string player_name = request.player_name;
-    std::string guess = request.guess;
-
-    if (!game.has_value()) {
+    if (!game.has_value())
         return Error("Game not found", HttpStatusCode::NOT_FOUND);
+
+    return game->make_guess(request.player_name, request.guess, request.timestamp);
+}
+
+
+
+bool GameState::all_ready_in_lobby() const {
+    if (players_list.empty()) return false;
+
+    for (size_t i = 0; i < players_list.size(); ++i) {
+        const Player& p = players_list[i];
+        if (!p.is_ready) return false; // GameState jest friend Player, więc może czytać private
+    }
+    return true;
+}
+
+Result<GameState> GameState::set_ready(const StateRequest& request) {
+    const std::string player_name = request.player_name;
+
+    // jak gra już trwa, to READY w lobby nie ma sensu (albo zwróć "already started")
+    if (game.has_value()) {
+        return Error("Game already started", HttpStatusCode::FORBIDDEN);
     }
 
-    return game->make_guess(player_name, guess);
+    // znajdź gracza w lobby i ustaw ready
+    for (size_t i = 0; i < players_list.size(); ++i) {
+        Player& p = players_list[i];
+        if (p.player_name == player_name) {
+            p.set_is_ready(true);
+
+            // jeśli wszyscy gotowi i jest min. liczba graczy -> start gry
+            const size_t MIN_PLAYERS = 3;
+            if (players_list.size() >= MIN_PLAYERS && all_ready_in_lobby()) {
+                start_game();
+            }
+
+            return Result<GameState>(*this);
+        }
+    }
+
+    return Error("Player not found in lobby", HttpStatusCode::NOT_FOUND);
 }

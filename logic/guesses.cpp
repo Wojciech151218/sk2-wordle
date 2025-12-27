@@ -10,20 +10,22 @@ bool Guesses::is_lost() {
 }
 
 //dodaje zgadywane słowo i koloruje litery
-Result<GuessResult> Guesses::add_guess_word(std::string guess, std::string actual){
-    WordleWord out = WordleWord::from_guess(guess, actual);
-    // walidacja zgadywanego słowa
-    if (guess.length() != actual.length()) {
+Result<WordleWord> Guesses::add_guess_word(const std::string& guess, const std::string& actual) {
+    if (guess.length() != actual.length())
         return Error("guess has wrong length", HttpStatusCode::BAD_REQUEST);
-    }
-    if (is_lost()) {
+
+    if (is_lost())
         return Error("player lost", HttpStatusCode::BAD_REQUEST);
-    }
 
+    WordleWord out = WordleWord::from_guess(guess, actual);
     guesses.push_back(out);
+    return Result<WordleWord>(out);
+}
 
-    if (out.is_green()) {
-        return Result<GuessResult>(GuessResult::CORRECT);
+
+bool Guesses::has_won() const {
+    for (const auto& w : guesses) {
+        if (w.is_green()) return true;
     }
-    return Result<GuessResult>(GuessResult::INCORRECT);
+    return false;
 }

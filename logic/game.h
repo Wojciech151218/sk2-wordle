@@ -54,5 +54,8 @@ public:
     int get_round() const;
 
     // Gracz wysyła guess: Game przekazuje to do aktualnej rundy
-    Result<std::vector<WordleWord>> make_guess(std::string player_name, std::string guess);
+    Result<std::vector<WordleWord>> make_guess(const std::string& player_name,
+                                          const std::string& guess,
+                                          std::time_t client_ts);
+
 };
