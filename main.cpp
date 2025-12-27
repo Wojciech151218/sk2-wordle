@@ -11,7 +11,7 @@
 #include "server/web-socket/web_socket_server.h"
 #include "server/cron/cron.h"
 #include "logic/endpoints/endpoints.h"
-#include "logic/endpoints/mock_endpoints.h"
+#include "logic/mocks/mock_endpoints.h"
 using namespace std;
 
 
