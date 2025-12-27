@@ -8,14 +8,13 @@
 
 GameState game_state = GameState(60);
 
-std::unique_ptr<Cron> get_game_cron() {
-    std::unique_ptr<Cron> cron = std::make_unique<Cron>();
-    cron->add_job([]() {
+void set_game_state_cron() {
+    Cron& cron = Cron::instance();
+    cron.add_job("round_finish", []() {
         nlohmann::json json = game_state;
         Logger::instance().debug("Sending game state to all clients : " + json.dump());
         WebSocketPool::instance().broadcast_all(json);
-    }, std::chrono::seconds(60));
-    return cron;
+    }, std::chrono::seconds(60), Cron::JobMode::OFF);
 };
 
 ServerMethod join_method = ServerMethod<JoinRequest>("/join", HttpMethod::POST, 
@@ -29,6 +28,8 @@ ServerMethod join_method = ServerMethod<JoinRequest>("/join", HttpMethod::POST,
         return Result<nlohmann::json>(result.unwrap_err());
     }
     nlohmann::json json = game_state;
+    WebSocketPool::instance().broadcast_all(json);
+
     return Result<nlohmann::json>(json);
 });
 
@@ -39,6 +40,8 @@ ServerMethod leave_method = ServerMethod<JoinRequest>("/leave", HttpMethod::DELE
         return Result<nlohmann::json>(result.unwrap_err());
     }
     nlohmann::json json = game_state;
+    WebSocketPool::instance().broadcast_all(json);
+
     return Result<nlohmann::json>(json);
 });
 
@@ -52,6 +55,7 @@ ServerMethod ready_method = ServerMethod<StateRequest>("/ready", HttpMethod::POS
     }
 
     nlohmann::json json = game_state;
+    WebSocketPool::instance().broadcast_all(json);
     return Result<nlohmann::json>(json);
 });
 
@@ -62,7 +66,6 @@ ServerMethod state_method = ServerMethod<StateRequest>("/", HttpMethod::GET,
     nlohmann::json json = game_state;
     // return Result<nlohmann::json>(json);
 
-    WebSocketPool::instance().broadcast_all(json);
     return Result<nlohmann::json>(game_state);
 });
 
@@ -74,6 +77,7 @@ ServerMethod guess_method = ServerMethod<GuessRequest>("/guess", HttpMethod::POS
     nlohmann::json json;
     json["state"] = game_state;
     json["guess_result"] = result.unwrap();  //tablica WordleWord
+    WebSocketPool::instance().broadcast_all(json);
     return Result<nlohmann::json>(json);
 });
 

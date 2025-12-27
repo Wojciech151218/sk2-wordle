@@ -1,6 +1,5 @@
 #include "cron.h"
 #include <mutex>
-#include <algorithm>
 
 static std::mutex jobs_mutex;
 
@@ -47,28 +46,27 @@ Cron& Cron::operator=(Cron&& other) noexcept {
     return *this;
 }
 
-int Cron::add_job(const std::function<void()>& callback, 
-                  std::chrono::milliseconds interval,
-                  bool repeat) {
+Cron& Cron::add_job(const std::string& identifier,
+                   const std::function<void()>& callback, 
+                   std::chrono::milliseconds interval,
+                   JobMode initial_mode) {
     std::lock_guard<std::mutex> lock(jobs_mutex);
     
     Job new_job;
-    new_job.id = next_job_id++;
     new_job.callback = callback;
     new_job.interval = interval;
     new_job.next_run = std::chrono::steady_clock::now() + interval;
-    new_job.repeat = repeat;
+    new_job.mode = initial_mode;
     
-    jobs.push_back(new_job);
+    jobs.emplace(identifier,std::move(new_job));
     
-    return new_job.id;
+    return *this;
 }
 
-bool Cron::remove_job(int job_id) {
+bool Cron::remove_job(const std::string& identifier) {
     std::lock_guard<std::mutex> lock(jobs_mutex);
     
-    auto it = std::find_if(jobs.begin(), jobs.end(),
-                          [job_id](const Job& job) { return job.id == job_id; });
+    auto it = jobs.find(identifier);
     
     if (it != jobs.end()) {
         jobs.erase(it);
@@ -94,19 +92,26 @@ void Cron::start() {
                 
                 // Check each job
                 for (auto it = jobs.begin(); it != jobs.end(); ) {
-                    if (now >= it->next_run) {
+                    auto& job = it->second;
+                    if (job.mode == JobMode::OFF) {
+                        ++it;
+                        continue;
+                    }
+                    if (now >= job.next_run) {
                         // Execute the job
-                        if (it->callback) {
-                            it->callback();
+                        if (job.callback) {
+                            job.callback();
                         }
                         
                         // Update or remove the job
-                        if (it->repeat) {
-                            it->next_run = now + it->interval;
+                        if (job.mode == JobMode::PERIODIC) {
+                            //Periodic job, update next run
+                            job.next_run = now + job.interval;
                             ++it;
-                        } else {
-                            // One-time job, remove it
-                            it = jobs.erase(it);
+                        } else  {
+                            //One-time job, remove it
+                            job.mode = JobMode::OFF;
+                            ++it;
                         }
                     } else {
                         ++it;
@@ -118,4 +123,47 @@ void Cron::start() {
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
     });
+}
+
+std::optional<Cron::JobMode> Cron::get_job_mode(const std::string& identifier) {
+    return atomic([&]() -> std::optional<Cron::JobMode> {
+        auto it = jobs.find(identifier);
+        if (it != jobs.end()) {
+            return it->second.mode;
+        }
+        return std::nullopt;
+    });
+}
+
+void Cron::set_job_mode(const std::string& identifier, Cron::JobMode mode) {
+    atomic([&]() {
+        auto it = jobs.find(identifier);
+        if (it != jobs.end()) {
+            it->second.mode = mode;
+        }
+    });
+}
+
+std::optional<std::chrono::milliseconds> Cron::get_job_interval(const std::string& identifier) {
+    return atomic([&]() -> std::optional<std::chrono::milliseconds> {
+        auto it = jobs.find(identifier);
+        if (it != jobs.end()) {
+            return it->second.interval;
+        }
+        return std::nullopt;
+    });
+}
+
+void Cron::set_job_interval(const std::string& identifier, std::chrono::milliseconds interval) {
+    atomic([&]() {
+        auto it = jobs.find(identifier);
+        if (it != jobs.end()) {
+            it->second.interval = interval;
+        }
+    });
+}
+
+void Cron::set_job_settings(const std::string& identifier, JobMode mode, std::chrono::milliseconds interval) {
+    set_job_mode(identifier, mode);
+    set_job_interval(identifier, interval);
 }

@@ -1,5 +1,6 @@
 #include "game_state.h"
 #include <ctime>
+#include "server/cron/cron.h"
 
 GameState::GameState(time_t round_duration)
     : round_end_time(0),
@@ -60,6 +61,13 @@ bool GameState::start_game() {
     players_list.clear();
 
     // start pierwszej rundyS
+
+    Cron& cron = Cron::instance();
+    cron.set_job_settings(
+        "round_finish", 
+        Cron::JobMode::ONCE, 
+        std::chrono::seconds(round_duration)
+    ); //NOWOSC 
     game->start_round();
 
     return true;
