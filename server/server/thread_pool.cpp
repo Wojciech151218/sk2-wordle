@@ -1,6 +1,7 @@
 #include "server/server/thread_pool.h"
+#include "server/server/tcp_socket.h"
 
-ThreadPool::ThreadPool(size_t n,std::function<void(TcpSocket*)> handle_job_callback) : 
+ThreadPool::ThreadPool(size_t n,std::function<void(TcpSocket&)> handle_job_callback) : 
     handle_job_callback(handle_job_callback), stop_flag(false), workers(n) {
         for (size_t i = 0; i < n; ++i) {
             workers.emplace_back(&ThreadPool::worker_loop, this);
@@ -17,7 +18,7 @@ ThreadPool::~ThreadPool() {
     for (auto& t : workers) t.join();
 }
 
-void ThreadPool::enqueue(TcpSocket* socket) {
+void ThreadPool::enqueue(TcpSocket& socket) {
     {
         std::unique_lock<std::mutex> lock(mtx);
         job_queue.push(socket);
@@ -27,15 +28,18 @@ void ThreadPool::enqueue(TcpSocket* socket) {
 
 void ThreadPool::worker_loop() {
     while (true) {
-        TcpSocket* socket;
+        TcpSocket* socket_ptr = nullptr;
         {
             std::unique_lock<std::mutex> lock(mtx);
             cv.wait(lock, [&] { return stop_flag || !job_queue.empty(); });
             if (stop_flag && job_queue.empty()) return;
-            socket = job_queue.front();
+            socket_ptr = &job_queue.front().get();
             job_queue.pop();
         }
+        if (socket_ptr == nullptr) {
+            throw std::runtime_error("Socket pointer is null");
+        }
 
-        handle_job_callback(socket);
+        handle_job_callback(*socket_ptr);
     }
 }

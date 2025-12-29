@@ -45,7 +45,7 @@ Result<int> TcpSocket::check_connected(std::string message) const {
     return Result<int>::from_bsd(
         socket_fd,
         message
-    ).log_error();
+    );
 }
 
 Result<TcpSocket> TcpSocket::listen(const std::string& host, int port, int max_connections) {
@@ -68,8 +68,7 @@ Result<TcpSocket> TcpSocket::listen(const std::string& host, int port, int max_c
         )
         .finally<TcpSocket>([&]() {
             return *this;
-        })
-        .log_error();
+        });
 }
 
 
@@ -84,8 +83,7 @@ Result<void*> TcpSocket::disconnect() {
         host.reset();
         port.reset();
         return nullptr;
-    })
-    .log_error();
+    });
 }
 
 void TcpSocket::set_send_buffer(std::string data) {
@@ -103,9 +101,7 @@ Result<bool> TcpSocket::send() {
         touch();
         send_buffer.erase(0, bytes_sent);
         return send_buffer.empty();
-    })
-    .log_error();
-
+    });
     
 }
 
@@ -124,8 +120,7 @@ Result<bool> TcpSocket::receive() {
             return Result<bool>(Error("Protocol callback not set"));
         }
         return Result<bool>(protocol_callback(recv_buffer));
-    })
-    .log_error();
+    });
 }
 
 std::string TcpSocket::flush_recv() {

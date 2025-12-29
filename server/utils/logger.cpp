@@ -105,9 +105,23 @@ void Logger::debug(const std::string& message) const {
 
 void Logger::error(const Error& error) const {
     const int current_errno = errno;
-    const std::string errno_details = options.debug_enabled ? " (errno=" + std::to_string(current_errno) + ": " + std::strerror(current_errno) +
-                                      ")" : "";
+    const std::string errno_details = options.debug_enabled ? 
+    " (errno=" + 
+    std::to_string(current_errno) + 
+    ": " + 
+    std::strerror(current_errno) +
+    ")" : "";
     log(Level::Error, error.get_message() + errno_details);
+}
+void Logger::error(const std::string& message, const Error& error) const {
+    const int current_errno = errno;
+    const std::string errno_details = options.debug_enabled ? 
+    " (errno=" + 
+    std::to_string(current_errno) + 
+    ": " + 
+    std::strerror(current_errno) +
+    ")" : "";
+    log(Level::Error, message + " : " + error.get_message() + errno_details);
 }
 
 void Logger::error(const std::string& message) const {

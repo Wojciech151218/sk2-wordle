@@ -65,6 +65,9 @@ class Result {
     const Result<T>& log_error() const &;
     Result<T> log_error() &&;
 
+    const Result<T>& log_error(const std::string& error_message) const &;
+    
+
     const Result<T>& log_debug() const &;
     Result<T> log_debug() &&;
 
@@ -197,6 +200,14 @@ inline Result<T> Result<T>::log_error() && {
         logger.error(left.value());
     }
     return std::move(*this);
+}
+
+template <typename T>
+inline const Result<T>& Result<T>::log_error(const std::string& error_message) const & {
+    if (is_err()) {
+        logger.error(error_message + " " + left.value().get_message() );
+    }
+    return *this;
 }
 
 template <typename T>

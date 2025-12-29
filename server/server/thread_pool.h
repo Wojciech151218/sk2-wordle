@@ -7,17 +7,18 @@
 #include <thread>
 #include <vector>
 #include <condition_variable>
+#include <memory>
 
 class ThreadPool {
 public:
-    ThreadPool(size_t n,std::function<void(TcpSocket*)> handle_job_callback);
+    ThreadPool(size_t n,std::function<void(TcpSocket&)> handle_job_callback);
     ~ThreadPool();
-    void enqueue(TcpSocket* socket);
+    void enqueue(TcpSocket& socket);
 
 private:
-    std::function<void(TcpSocket*)> handle_job_callback;
+    std::function<void(TcpSocket&)> handle_job_callback;
     std::vector<std::thread> workers;
-    std::queue<TcpSocket*> job_queue;
+    std::queue<std::reference_wrapper<TcpSocket>> job_queue;
     std::mutex mtx;
     std::condition_variable cv;
     bool stop_flag;

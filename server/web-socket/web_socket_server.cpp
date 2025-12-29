@@ -8,7 +8,7 @@
 
 WebSocketServer::WebSocketServer() : TcpServer() {
 
-    WebSocketPool::instance().set_connections(&connections);
+    WebSocketPool::instance().set_connections(connections);
 }
 
 

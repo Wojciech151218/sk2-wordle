@@ -7,13 +7,13 @@
 
 class WebSocketPool : public GlobalState<WebSocketPool> {
     private:
-        std::vector<TcpSocket*> * connections;
+        std::unordered_map<int, std::reference_wrapper<TcpSocket>>  connections;
 
     public:
-        WebSocketPool(std::vector<TcpSocket*> * connections = nullptr);
+        WebSocketPool();
         ~WebSocketPool();
         
-        void set_connections(std::vector<TcpSocket*> * connections);
+        void set_connections(std::unordered_map<int, std::reference_wrapper<TcpSocket>>  connections);
         void broadcast_all(const nlohmann::json& json);
         bool is_socket_connected(const TcpSocket& socket) const;
 };
