@@ -66,7 +66,7 @@ class TcpSocket {
 
     std::chrono::milliseconds time_since_last_activity() const;
     bool should_timeout(const std::chrono::milliseconds& timeout) const {
-      return time_since_last_activity() > timeout;
+      return time_since_last_activity() > timeout && get_connection_state() == ConnectionState::IDLE;
     }
 
     bool operator==(const TcpSocket& other) const {

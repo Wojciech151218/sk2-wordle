@@ -31,11 +31,16 @@ Result<bool> HttpServer::handle_connected(TcpSocket& socket) {
     return TcpServer::handle_connected(socket);
 }
 
-std::string HttpServer::get_response_info(std::string path,const HttpResponse& response, const TcpSocket& socket) const {
-    return path + 
+std::string HttpServer::get_response_info(const HttpRequest& http_request,const HttpResponse& response, const TcpSocket& socket) const {
+    return 
+    method_to_string(http_request.get_method()) + 
+    http_request.get_path() + 
+    " " + method_to_string(http_request.get_method()) + 
     " " + status_code_to_string(response.get_status_code()) + 
     " " + get_status_message(response.get_status_code()) + " " + socket.socket_info();
 }
+
+
 void HttpServer::handle_state_change(TcpSocket& socket) {
     switch (socket.get_connection_state()) {
         case TcpSocket::ConnectionState::CONNECTED:
@@ -49,9 +54,9 @@ void HttpServer::handle_state_change(TcpSocket& socket) {
             Logger::instance().debug("Response: " + response.to_string());
 
             if(!response.is_success()) {
-                Logger::instance().error(get_response_info(http_request.get_path(), response, socket));
+                Logger::instance().error(get_response_info(http_request, response, socket));
             }else{
-                Logger::instance().info(get_response_info(http_request.get_path(), response, socket));
+                Logger::instance().info(get_response_info(http_request, response, socket));
             }
             socket.set_send_buffer(response.to_string());
             socket.set_connection_state(TcpSocket::ConnectionState::WRITING);

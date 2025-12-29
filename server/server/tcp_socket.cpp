@@ -78,6 +78,10 @@ Result<void*> TcpSocket::disconnect() {
         close(this->socket_fd),
     "Failed to close socket"
     )
+    .chain_from_bsd(
+        shutdown(this->socket_fd, SHUT_RDWR),
+        "Failed to shutdown socket"
+    )
     .finally<void*>([&]() {
         this->socket_fd = 0;
         host.reset();
@@ -116,6 +120,7 @@ Result<bool> TcpSocket::receive() {
     )
     .chain<bool>([&](size_t result) {
         recv_buffer.append(buffer, result);
+        touch();
         if (!protocol_callback) {
             return Result<bool>(Error("Protocol callback not set"));
         }

@@ -3,8 +3,9 @@
 #include <string>
 #include <chrono>
 #include <sys/epoll.h>
+#include <cerrno>
 #include <unistd.h>
-#include <algorithm>
+#include <vector>
 
 TcpServer::TcpServer()
     :
@@ -73,7 +74,9 @@ Result<bool> TcpServer::handle_closing(TcpSocket& socket) {
     return Result<bool>(true);
 }
 
-
+void TcpServer::handle_error(TcpSocket& socket,Error error) {
+    handle_closing(socket);
+}
 
 bool TcpServer::stop_task_condition(TcpSocket& socket) {
     return socket.get_connection_state() == TcpSocket::ConnectionState::CLOSING
@@ -102,11 +105,10 @@ void TcpServer::handle_client_task(TcpSocket& client_socket) {
                 break;
         }
 
-        if (result.log_error().is_err()) {
-            handle_closing(client_socket);
-            return;
+        if (result.log_error("Error in handle_client_task").is_err()) {
+            handle_error(client_socket,result.unwrap_err());
         }
-        if (result.unwrap()) {
+        else if (result.unwrap()) {
             handle_state_change(client_socket);
         }
     } while (!stop_task_condition(client_socket));
@@ -115,33 +117,36 @@ void TcpServer::handle_client_task(TcpSocket& client_socket) {
 
 void TcpServer::handle_server_event() {
     auto accept_result = server_socket.accept();
-    if (accept_result.is_err()) {
-        logger.error("Failed to accept connection");
-        accept_result.log_error();
-        return;
-    }
+    if (accept_result.log_error("Failed to accept connection").is_err()) return;
 
-    std::unique_ptr<TcpSocket> client_socket = std::make_unique<TcpSocket>(accept_result.unwrap());
-    client_socket->set_connection_state(TcpSocket::ConnectionState::CONNECTED);
-    connections.emplace(client_socket->get_fd(), *client_socket);
+    TcpSocket client_socket = accept_result.unwrap();
+    client_socket.set_connection_state(TcpSocket::ConnectionState::CONNECTED);
+    int client_fd = client_socket.get_fd();
+    connections.emplace(client_fd, std::move(client_socket));
 
     // Add client socket to epoll with edge-triggered mode
     struct epoll_event client_ev;
     client_ev.events = EPOLLIN | EPOLLOUT | EPOLLRDHUP | EPOLLET;
-    client_ev.data.fd = client_socket->get_fd();
-    if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_socket->get_fd(), &client_ev) == -1) {
+    client_ev.data.fd = client_fd;
+    if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &client_ev) == -1) {
         logger.error(Error(std::string("Failed to add client socket to epoll")));
-        client_socket.reset();
-        connections.erase(client_socket->get_fd());
+        connections.erase(client_fd);
         return;
     }
     
-    return;
 }
 
-void TcpServer::handle_client_event(TcpSocket& client_socket) {
+void TcpServer::handle_client_event(int fd,epoll_event event) {
+
+    auto it = connections.find(fd);
+    if (it == connections.end()) {
+        logger.warn("Received event for unknown socket fd: " + std::to_string(fd));
+        return;
+    }
+    TcpSocket& client_socket = it->second;
+
     int client_fd = client_socket.get_fd();
-    if (events.at(client_fd).events & (EPOLLRDHUP | EPOLLHUP | EPOLLERR)) {
+    if (event.events & (EPOLLRDHUP | EPOLLHUP | EPOLLERR)) {
         client_socket.set_connection_state(TcpSocket::ConnectionState::CLOSING);
     }
     thread_pool.enqueue(client_socket);
@@ -151,10 +156,26 @@ void TcpServer::handle_client_event(TcpSocket& client_socket) {
         logger.debug("Connection closed");
         epoll_ctl(epoll_fd, EPOLL_CTL_DEL, client_fd, nullptr);
         connections.erase(client_fd);
-        return;
+    }
+}
+
+void TcpServer::purge_idle_clients() {
+    std::vector<int> to_close;
+    for (auto& [fd, socket] : connections) {
+        if (socket.should_timeout(client_timeout)) {
+            to_close.push_back(fd);
+        }
     }
 
-    return;
+    for (int fd : to_close) {
+        auto it = connections.find(fd);
+        if (it == connections.end()) continue;
+
+        logger.debug("Closing idle connection fd: " + std::to_string(fd));
+        epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, nullptr);
+        it->second.disconnect();
+        connections.erase(it);
+    }
 }
 
 void TcpServer::run() {
@@ -182,25 +203,21 @@ void TcpServer::run_loop() {
     }
 
     while (true) {
-        int nfds = epoll_wait(epoll_fd, events.data(), MAX_EVENTS, -1);
-        if(Result<int>::from_bsd(
-            nfds,
-            "Failed to wait for events"
-        ).log_error().is_err()) {
-            break;
+        int nfds = epoll_wait(epoll_fd, events.data(), MAX_EVENTS, 1000); // 1s wakeup for idle check
+        if (nfds == -1) {
+            if (errno == EINTR) continue;
+            logger.error(Error(std::string("Failed to wait for events")));
+            continue;
         }
+
         for (int i = 0; i < nfds; i++) {
             int fd = events[i].data.fd;
-            auto it = connections.find(fd);
-            if (it == connections.end()) {
-                logger.warn("Received event for unknown socket fd: " + std::to_string(fd));
-                continue;
-            }
-            TcpSocket& socket = it->second;
-            
-            if (socket == server_socket) handle_server_event();
-            else handle_client_event(socket);    
+      
+            if (fd == server_socket.get_fd()) handle_server_event();
+            else handle_client_event(fd, events[i]);    
         }
+
+        purge_idle_clients();
     }
 
     close(epoll_fd);

@@ -12,7 +12,7 @@ class HttpServer : public TcpServer {
     Router router;
 
     Result<bool> handle_connected(TcpSocket& socket) override;
-    std::string get_response_info(std::string route_name,const HttpResponse& response, const TcpSocket& socket) const;
+    std::string get_response_info(const HttpRequest& http_request,const HttpResponse& response, const TcpSocket& socket) const;
 
   public:
     HttpServer();
@@ -24,7 +24,6 @@ class HttpServer : public TcpServer {
     void add_method(const ServerMethod<Body>& method) {
         router.add_method(method);
     }
-
     // Override virtual methods from TcpServer
     virtual void handle_state_change(TcpSocket& socket) override;
 };

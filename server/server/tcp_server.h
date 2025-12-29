@@ -5,11 +5,9 @@
 
 #include <array>
 #include <chrono>
-#include <memory>
 #include <sys/epoll.h>
 #include <thread>
-#include <vector>
-#include <memory>
+#include <unordered_map>
 #define MAX_EVENTS 64
 
 class TcpServer {
@@ -20,7 +18,7 @@ class TcpServer {
     std::thread server_thread;
     int epoll_fd;
     std::array<struct epoll_event, MAX_EVENTS> events;
-    std::unordered_map<int, std::reference_wrapper<TcpSocket>> connections;
+    std::unordered_map<int, TcpSocket> connections;
     Logger& logger = Logger::instance();
     void run_loop();
     virtual bool stop_task_condition(TcpSocket& socket);
@@ -32,12 +30,13 @@ class TcpServer {
     virtual Result<bool> handle_writing(TcpSocket& socket);
     virtual Result<bool> handle_reading(TcpSocket& socket);
     virtual Result<bool> handle_closing(TcpSocket& socket);
+    virtual void handle_error(TcpSocket& socket,Error error);
 
 
     void handle_server_event();
-    void handle_client_event(TcpSocket& socket);
+    void handle_client_event(int fd,epoll_event event);
+    void purge_idle_clients();
 
-    std::vector<std::reference_wrapper<TcpSocket>>::iterator find_client_socket(int fd);
 
     
 
