@@ -4,7 +4,7 @@
 #include "server/http/http_request.h"
 #include "server/http/http_response.h"
 #include <string>
-#include "server/server/server_method.h"
+#include "server/http/server_method.h"
 
 HttpServer::HttpServer() : TcpServer() {
     router.add_method(

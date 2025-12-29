@@ -1,8 +1,8 @@
 #pragma once
 
 #include "server/server/tcp_server.h"
-#include "server/server/router.h"
-#include "server/server/server_method.h"
+#include "server/http/router.h"
+#include "server/http/server_method.h"
 #include "server/http/http_request.h"
 #include "server/http/http_response.h"
 #include "server/utils/result.h"

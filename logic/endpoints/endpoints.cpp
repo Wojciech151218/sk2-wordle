@@ -1,5 +1,5 @@
 #include "logic/endpoints/request_bodies.h"
-#include "server/server/server_method.h"
+#include "server/http/server_method.h"
 #include <memory>
 #include "logic/game_state.h"
 #include "server/web-socket/web_socket_pool.h"
