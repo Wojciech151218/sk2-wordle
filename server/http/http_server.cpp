@@ -34,7 +34,7 @@ Result<bool> HttpServer::handle_connected(TcpSocket& socket) {
 std::string HttpServer::get_response_info(const HttpRequest& http_request,const HttpResponse& response, const TcpSocket& socket) const {
     return 
     method_to_string(http_request.get_method()) + 
-    http_request.get_path() + 
+    " " + http_request.get_path() + 
     " " + method_to_string(http_request.get_method()) + 
     " " + status_code_to_string(response.get_status_code()) + 
     " " + get_status_message(response.get_status_code()) + " " + socket.socket_info();
