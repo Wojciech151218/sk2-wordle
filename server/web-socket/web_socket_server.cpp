@@ -7,6 +7,7 @@
 
 
 WebSocketServer::WebSocketServer() : TcpServer() {
+    set_client_timeout(std::chrono::seconds::max());
     WebSocketPool::instance().set_connections(connections);
 }
 
