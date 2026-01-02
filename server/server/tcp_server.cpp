@@ -9,8 +9,8 @@
 
 TcpServer::TcpServer()
     :
-      thread_pool(10, [this](TcpSocket& client) { handle_client_task(client); }),
-      client_timeout(std::chrono::seconds(30)),
+      thread_pool(10, [this](TcpSocket& client) { }),
+      client_timeout(std::chrono::seconds(2)),
       epoll_fd(epoll_create1(0))
     {
         if (epoll_fd == -1) {
@@ -52,132 +52,6 @@ void TcpServer::stop() {
     }
 }
 
-Result<bool> TcpServer::handle_connected(TcpSocket& socket) {;
-    return handle_reading(socket);
-}
-
-Result<bool> TcpServer::handle_idle(TcpSocket& socket) {
-    return handle_reading(socket);
-}
-
-Result<bool> TcpServer::handle_writing(TcpSocket& socket) {
-    return socket.send();
-}
-
-Result<bool> TcpServer::handle_reading(TcpSocket& socket) {
-    return socket.receive();
-}
-
-Result<bool> TcpServer::handle_closing(TcpSocket& socket) {
-    socket.disconnect();
-    connections.erase(socket.get_fd());
-    return Result<bool>(true);
-}
-
-void TcpServer::handle_error(TcpSocket& socket,Error error) {
-    handle_closing(socket);
-}
-
-bool TcpServer::stop_task_condition(TcpSocket& socket) {
-    return socket.get_connection_state() == TcpSocket::ConnectionState::CLOSING
-    || socket.get_connection_state() == TcpSocket::ConnectionState::IDLE;
-}
-
-void TcpServer::handle_client_task(TcpSocket& client_socket) {
-
-    Result<bool> result = Result<bool>(Error("Invalid connection state"));
-    do {
-        switch (client_socket.get_connection_state()) {
-            case TcpSocket::ConnectionState::CONNECTED:
-                result = handle_connected(client_socket);
-                break;
-            case TcpSocket::ConnectionState::WRITING:
-                result = handle_writing(client_socket);
-                break;
-            case TcpSocket::ConnectionState::IDLE:
-                result = handle_idle(client_socket);
-                break;
-            case TcpSocket::ConnectionState::READING:
-                result = handle_reading(client_socket);
-                break;
-            case TcpSocket::ConnectionState::CLOSING:
-                result = handle_closing(client_socket);
-                break;
-        }
-
-        if (result.log_error("Error in handle_client_task").is_err()) {
-            handle_error(client_socket,result.unwrap_err());
-        }
-        else if (result.unwrap()) {
-            handle_state_change(client_socket);
-        }
-    } while (!stop_task_condition(client_socket));
-}
-
-
-void TcpServer::handle_server_event() {
-    auto accept_result = server_socket.accept();
-    if (accept_result.log_error("Failed to accept connection").is_err()) return;
-
-    TcpSocket client_socket = accept_result.unwrap();
-    client_socket.set_connection_state(TcpSocket::ConnectionState::CONNECTED);
-    int client_fd = client_socket.get_fd();
-    connections.emplace(client_fd, std::move(client_socket));
-
-    // Add client socket to epoll with edge-triggered mode
-    struct epoll_event client_ev;
-    client_ev.events = EPOLLIN | EPOLLOUT | EPOLLRDHUP | EPOLLET;
-    client_ev.data.fd = client_fd;
-    if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &client_ev) == -1) {
-        logger.error(Error(std::string("Failed to add client socket to epoll")));
-        connections.erase(client_fd);
-        return;
-    }
-    
-}
-
-void TcpServer::handle_client_event(int fd,epoll_event event) {
-
-    auto it = connections.find(fd);
-    if (it == connections.end()) {
-        logger.warn("Received event for unknown socket fd: " + std::to_string(fd));
-        return;
-    }
-    TcpSocket& client_socket = it->second;
-
-    int client_fd = client_socket.get_fd();
-    if (event.events & (EPOLLRDHUP | EPOLLHUP | EPOLLERR)) {
-        client_socket.set_connection_state(TcpSocket::ConnectionState::CLOSING);
-    }
-    thread_pool.enqueue(client_socket);
-
-    // Check if this is a close event (this will be determined by connection state or error conditions)
-    if (client_socket.get_connection_state() == TcpSocket::ConnectionState::CLOSING) {
-        logger.debug("Connection closed");
-        epoll_ctl(epoll_fd, EPOLL_CTL_DEL, client_fd, nullptr);
-        connections.erase(client_fd);
-    }
-}
-
-void TcpServer::purge_idle_clients() {
-    std::vector<int> to_close;
-    for (auto& [fd, socket] : connections) {
-        if (socket.should_timeout(client_timeout)) {
-            to_close.push_back(fd);
-        }
-    }
-
-    for (int fd : to_close) {
-        auto it = connections.find(fd);
-        if (it == connections.end()) continue;
-
-        logger.debug("Closing idle connection fd: " + std::to_string(fd));
-        epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, nullptr);
-        it->second.disconnect();
-        connections.erase(it);
-    }
-}
-
 void TcpServer::run() {
     if (server_thread.joinable()) {
         Logger::instance().info("Server is already running");
@@ -186,6 +60,118 @@ void TcpServer::run() {
     
     server_thread = std::thread(&TcpServer::run_loop, this);
 }
+
+
+
+
+void TcpServer::handle_server_event() {
+    auto accept_result = server_socket.accept();
+    if (accept_result.log_error("Failed to accept connection").is_err()) return;
+
+    TcpSocket client_socket = accept_result.unwrap();
+    on_client_connected(client_socket);
+
+    int client_fd = client_socket.get_fd();
+    connections.emplace(client_fd, std::move(client_socket));
+    struct epoll_event client_ev;
+    client_ev.events = EPOLLIN | EPOLLOUT | EPOLLRDHUP | EPOLLET;
+    client_ev.data.fd = client_fd;
+    if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &client_ev) == -1) {
+        logger.error(Error("Failed to add client socket to epoll"));
+        connections.erase(client_fd);
+        return;
+    }
+    
+}
+
+
+void TcpServer::handle_client_event(int fd,uint32_t events) {
+
+    auto it = connections.find(fd);
+    if (it == connections.end()) {
+        logger.warn("Received event for unknown socket fd: " + std::to_string(fd));
+        return;
+    }
+    TcpSocket& client_socket = it->second;
+
+    if (events & (EPOLLHUP | EPOLLERR)) {
+        drain_and_close(client_socket);
+        return;
+    }
+    
+    if (events & EPOLLRDHUP) {
+        mark_peer_half_closed(client_socket);
+    }
+    
+    if (events & EPOLLIN) {
+        read_until_eagain(client_socket);
+    }
+    
+    if (events & EPOLLOUT) {
+        write_until_eagain(client_socket);
+    }
+}
+
+
+void TcpServer::drain_and_close(TcpSocket& client_socket) {
+    logger.debug("Draining and closing client " + client_socket.socket_info());
+
+    auto messages = client_socket.flush_messages();
+    for (auto& message : messages) {
+        handle_message(client_socket, message);
+    }
+
+    epoll_ctl(epoll_fd, EPOLL_CTL_DEL, client_socket.get_fd(), nullptr);
+    connections.erase(client_socket.get_fd());
+    client_socket.disconnect();
+}
+
+void TcpServer::mark_peer_half_closed(TcpSocket& client_socket) {
+    logger.debug("Marking peer half closed for client " + client_socket.socket_info());
+
+    client_socket.set_half_closed();
+}
+
+void TcpServer::read_until_eagain(TcpSocket& client_socket) {
+    logger.debug("Reading data from client " + client_socket.socket_info());
+
+    auto receive_result = client_socket.receive();
+
+    
+    if(receive_result.log_error("Failed to read data").is_err()) {
+        handle_error(client_socket);
+        return;
+    }
+    if(receive_result.unwrap()) {
+        client_socket.set_half_closed();
+    }
+    auto messages = client_socket.flush_messages();
+    for (auto& message : messages) {
+        handle_message(client_socket, message);
+    }
+
+
+}
+
+void TcpServer::write_until_eagain(TcpSocket& client_socket) {
+    logger.debug("Writing data to client " + client_socket.socket_info());
+
+    auto send_result = client_socket.send();
+    if (send_result.log_error("Failed to send data").is_err()) {
+        handle_error(client_socket);
+        return;
+    }
+    if(send_result.unwrap() && client_socket.get_half_closed()) {
+        client_socket.disconnect();
+    }
+}
+
+void TcpServer::handle_error(TcpSocket& client_socket) {
+    client_socket.disconnect();
+}
+
+
+
 
 
 void TcpServer::run_loop() {
@@ -212,12 +198,12 @@ void TcpServer::run_loop() {
 
         for (int i = 0; i < nfds; i++) {
             int fd = events[i].data.fd;
+            uint32_t ev = events[i].events;
       
             if (fd == server_socket.get_fd()) handle_server_event();
-            else handle_client_event(fd, events[i]);    
+            else handle_client_event(fd,ev);    
         }
 
-        purge_idle_clients();
     }
 
     close(epoll_fd);

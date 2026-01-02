@@ -24,12 +24,7 @@ void HttpServer::start(int port, std::string address) {
     TcpServer::start(port, address);
 }
 
-Result<bool> HttpServer::handle_connected(TcpSocket& socket) {
-    socket.set_protocol_callback([&](std::string data) {
-        return true;
-    });
-    return TcpServer::handle_connected(socket);
-}
+
 
 std::string HttpServer::get_response_info(const HttpRequest& http_request,const HttpResponse& response, const TcpSocket& socket) const {
     return 
@@ -41,33 +36,21 @@ std::string HttpServer::get_response_info(const HttpRequest& http_request,const 
 }
 
 
-void HttpServer::handle_state_change(TcpSocket& socket) {
-    switch (socket.get_connection_state()) {
-        case TcpSocket::ConnectionState::CONNECTED:
-        case TcpSocket::ConnectionState::IDLE:  
-            socket.set_connection_state(TcpSocket::ConnectionState::READING);
-        case TcpSocket::ConnectionState::READING: {
-            auto message = socket.flush_recv();
-            HttpRequest http_request(message);
-            Logger::instance().debug("Received request: " + http_request.to_string());
-            auto response = router.handle_request(http_request);
-            Logger::instance().debug("Response: " + response.to_string());
-
-            if(!response.is_success()) {
-                Logger::instance().error(get_response_info(http_request, response, socket));
-            }else{
-                Logger::instance().info(get_response_info(http_request, response, socket));
-            }
-            socket.set_send_buffer(response.to_string());
-            socket.set_connection_state(TcpSocket::ConnectionState::WRITING);
-            break;
-        }
-        case TcpSocket::ConnectionState::WRITING:
-            socket.set_connection_state(TcpSocket::ConnectionState::IDLE);
-            break;
-        case TcpSocket::ConnectionState::CLOSING:
-            socket.set_connection_state(TcpSocket::ConnectionState::CLOSING);
-            break;
+void HttpServer::on_client_connected(TcpSocket& client_socket) {
+    client_socket.set_protocol_callback([&](std::string data) {
+        if(data.empty()) return std::optional<std::string>();
+        return std::optional<std::string>(data);
+    });
+}
+void HttpServer::handle_message(TcpSocket& socket, std::string message) {
+    HttpRequest request(message);
+    HttpResponse response = router.handle_request(request);
+    auto response_info = get_response_info(request, response, socket);
+    if(!response.is_success()) {
+        Logger::instance().error(response_info);
+    }else{
+        Logger::instance().info(response_info);
     }
+    socket.set_send_buffer(response.to_string());
 }
 

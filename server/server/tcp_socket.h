@@ -7,21 +7,14 @@
 #include <string>
 
 class TcpSocket {
-  public: 
-  enum class ConnectionState {
-    CONNECTED,
-    IDLE,
-    WRITING,
-    READING,
-    CLOSING
-  };
   private:
-    
     int socket_fd;
     std::optional<std::string> host;
     std::optional<int> port;
     std::chrono::steady_clock::time_point last_activity;
-    std::function<bool(std::string)> protocol_callback;
+    std::function<std::optional<std::string>(std::string)> protocol_callback;
+    std::unordered_map<std::string, std::string> metadata;
+    bool is_half_closed = false;
   
 
     std::string recv_buffer;
@@ -31,19 +24,29 @@ class TcpSocket {
     Result<int> check_connected(std::string message) const;
     void touch();
 
-    ConnectionState connection_state = ConnectionState::IDLE;
+  
   public:
 
-    void set_protocol_callback(std::function<bool(std::string)> callback) {
+    
+      
+
+    void set_protocol_callback(std::function<std::optional<std::string>(std::string)> callback) {
       protocol_callback = callback;
     }
+    void set_half_closed() {
+      is_half_closed = true;
+    }
+    bool get_half_closed() const {
+      return is_half_closed;
+    }
 
-    ConnectionState get_connection_state() const {
-      return connection_state;
+    void set_metadata(const std::string& key, const std::string& value) {
+      metadata[key] = value;
     }
-    void set_connection_state(ConnectionState state) {
-      connection_state = state;
+    std::optional<std::string> get_metadata(const std::string& key) const {
+      return metadata.find(key) != metadata.end() ? std::optional<std::string>(metadata.at(key)) : std::nullopt;
     }
+
     TcpSocket();
     TcpSocket(int socket_fd, const std::string& host, int port);
 
@@ -55,7 +58,9 @@ class TcpSocket {
     Result<bool> send();
     
     Result<bool> receive();
-    std::string flush_recv();
+    std::vector<std::string> flush_messages();
+
+    void drain_buffer();
 
     
     Result<TcpSocket> accept();
@@ -66,7 +71,7 @@ class TcpSocket {
 
     std::chrono::milliseconds time_since_last_activity() const;
     bool should_timeout(const std::chrono::milliseconds& timeout) const {
-      return time_since_last_activity() > timeout && get_connection_state() == ConnectionState::IDLE;
+      return time_since_last_activity() > timeout ;
     }
 
     bool operator==(const TcpSocket& other) const {

@@ -14,15 +14,17 @@
 
 TcpSocket::TcpSocket()
     : socket_fd(socket(AF_INET, SOCK_STREAM, 0)),
-      last_activity(std::chrono::steady_clock::now()) {
+      last_activity(std::chrono::steady_clock::now()){
 
     Result<int>::from_bsd(
         socket_fd,
         "Failed to create socket"
     ).log_error();
+    
+    int flags = fcntl(socket_fd, F_GETFL, 0);
+    fcntl(socket_fd, F_SETFL, flags | O_NONBLOCK);
+    
 
-    // int flags = fcntl(socket_fd, F_GETFL, 0);
-    // fcntl(socket_fd, F_SETFL, flags | O_NONBLOCK);
     int opt = 1;
     setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 }
@@ -35,9 +37,8 @@ TcpSocket::TcpSocket(int socket_fd, const std::string& host, int port)
 
     int opt = 1;
     setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
-    // int flags = fcntl(socket_fd, F_GETFL, 0);
-    // fcntl(socket_fd, F_SETFL, flags | O_NONBLOCK);
-
+    int flags = fcntl(socket_fd, F_GETFL, 0);
+    fcntl(socket_fd, F_SETFL, flags | O_NONBLOCK);
 }
 
 
@@ -57,7 +58,7 @@ Result<TcpSocket> TcpSocket::listen(const std::string& host, int port, int max_c
     addr.sin_addr.s_addr = inet_addr(host.c_str());
 
 
-    return check_connected("Failed to create socket")
+    return check_connected("Failed to create socket while listening")
         .chain_from_bsd(
             bind(socket_fd, (struct sockaddr*)&addr, sizeof(addr)), 
             "Failed to create socket"
@@ -73,14 +74,14 @@ Result<TcpSocket> TcpSocket::listen(const std::string& host, int port, int max_c
 
 
 Result<void*> TcpSocket::disconnect() {
-    return check_connected("Socket not connected")
-    .chain_from_bsd(
-        close(this->socket_fd),
-    "Failed to close socket"
-    )
+    return check_connected("Socket not connected while disconnecting")
     .chain_from_bsd(
         shutdown(this->socket_fd, SHUT_RDWR),
         "Failed to shutdown socket"
+    )
+    .chain_from_bsd(
+        close(this->socket_fd),
+        "Failed to close socket"
     )
     .finally<void*>([&]() {
         this->socket_fd = 0;
@@ -95,50 +96,93 @@ void TcpSocket::set_send_buffer(std::string data) {
 }
 
 Result<bool> TcpSocket::send() {
+
+    //return true if send buffer is empty
  
     
-    return check_connected("Socket not connected")
-    .chain_from_bsd(
-        ::send(this->socket_fd, send_buffer.c_str(), send_buffer.size(), 0), 
-        "Failed to send data"
-    ).finally<bool>([&](int bytes_sent) {
-        touch();
-        send_buffer.erase(0, bytes_sent);
-        return send_buffer.empty();
+    return check_connected("Socket not connected while sending")
+    .chain<bool>([&](int _) {
+
+        while(true) {
+            int result = ::send(this->socket_fd, send_buffer.c_str(), send_buffer.size(), 0);
+            touch();
+            send_buffer.erase(0, result);
+            
+            if(send_buffer.empty()) {
+                return Result<bool>(false);
+            }
+
+            if(result < 0) {
+
+                if(errno == EAGAIN || errno == EWOULDBLOCK) {
+                    return Result<bool>(false);
+                }
+                return Result<bool>(Error("Failed to send data"));
+            }
+
+            touch();
+            send_buffer.erase(0, result);
+        }
     });
+
+
     
+}
+
+void TcpSocket::drain_buffer() {
+    recv_buffer.clear();
 }
 
 Result<bool> TcpSocket::receive() {
+    //returns true if received EOF
     char buffer[1024];
    
 
-    return check_connected("Socket not connected")
-    .chain_from_bsd(
-        ::recv(this->socket_fd, buffer, 1024, 0), 
-        "Failed to send data"
-    )
-    .chain<bool>([&](size_t result) {
-        recv_buffer.append(buffer, result);
-        touch();
-        if (!protocol_callback) {
-            return Result<bool>(Error("Protocol callback not set"));
+    return check_connected("Socket not connected while receiving")
+    .chain<bool>([&](int _) {
+
+        while(true) {
+            int result = ::recv(this->socket_fd, buffer, 1024, 0);
+            touch();
+
+            if(result == 0) {
+                return Result<bool>(true);
+            }
+
+            if(result < 0) {
+                if(errno == EAGAIN || errno == EWOULDBLOCK) {
+                    return Result<bool>(false);
+                };
+                return Result<bool>(Error("Failed to receive data"));
+            }
+
+            recv_buffer.append(buffer, result);
         }
-        return Result<bool>(protocol_callback(recv_buffer));
+
     });
 }
 
-std::string TcpSocket::flush_recv() {
-    auto data = recv_buffer;
-    recv_buffer.clear();
-    return data;
+std::vector<std::string> TcpSocket::flush_messages() {
+    //protocol callback should return the next message to be processed or nullopt if no full message is detected
+    std::vector<std::string> messages;
+    if(!protocol_callback){
+        Logger::instance().error("Protocol callback is not set");
+        return messages;
+    }
+    while(true) {
+        
+        auto data_message = protocol_callback(recv_buffer);
+        if(!data_message.has_value()) return messages;
+        recv_buffer.erase(0, data_message->size());
+        messages.push_back(*data_message);
+    }
 }
 
 Result<TcpSocket> TcpSocket::accept() {
     struct sockaddr_in client_addr;
     socklen_t client_addr_len = sizeof(client_addr);
 
-    return check_connected("Socket not connected")
+    return check_connected("Socket not connected while accepting")
     .chain_from_bsd(
         ::accept(
             this->socket_fd,

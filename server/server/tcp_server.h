@@ -21,21 +21,20 @@ class TcpServer {
     std::unordered_map<int, TcpSocket> connections;
     Logger& logger = Logger::instance();
     void run_loop();
-    virtual bool stop_task_condition(TcpSocket& socket);
-    void handle_client_task(TcpSocket& socket);
-    virtual void handle_state_change(TcpSocket& socket) = 0;
+  
 
-    virtual Result<bool> handle_connected(TcpSocket& socket);
-    virtual Result<bool> handle_idle(TcpSocket& socket);
-    virtual Result<bool> handle_writing(TcpSocket& socket);
-    virtual Result<bool> handle_reading(TcpSocket& socket);
-    virtual Result<bool> handle_closing(TcpSocket& socket);
-    virtual void handle_error(TcpSocket& socket,Error error);
+    virtual void handle_message(TcpSocket& socket, std::string message) = 0;
 
+
+    virtual void drain_and_close(TcpSocket& client_socket);
+    virtual void mark_peer_half_closed(TcpSocket& client_socket);
+    virtual void read_until_eagain(TcpSocket& client_socket);
+    virtual void write_until_eagain(TcpSocket& client_socket);
+    virtual void handle_error(TcpSocket& client_socket);
+    virtual void on_client_connected(TcpSocket& client_socket) = 0;
 
     void handle_server_event();
-    void handle_client_event(int fd,epoll_event event);
-    void purge_idle_clients();
+    void handle_client_event(int fd,uint32_t events);
 
 
     
