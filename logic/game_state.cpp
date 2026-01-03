@@ -40,6 +40,8 @@ Result<GameState> GameState::add_player(const JoinRequest& request) {
     return Result<GameState>(*this);
 }
 
+
+
 Result<GameState> GameState::remove_player(const JoinRequest& request) {
     std::string player_name = request.player_name;
     // usuwamy tylko z lobby (poczekalni)
@@ -50,6 +52,10 @@ Result<GameState> GameState::remove_player(const JoinRequest& request) {
         }
     }
     return Error("Player not found", HttpStatusCode::NOT_FOUND);
+}
+
+void GameState::next_round() {
+    game->end_round();
 }
 
 bool GameState::start_game() {
@@ -71,12 +77,7 @@ bool GameState::start_game() {
 
     // start pierwszej rundyS
 
-    Cron& cron = Cron::instance();
-    cron.set_job_settings(
-        "round_finish", 
-        Cron::JobMode::ONCE, 
-        std::chrono::seconds(round_duration)
-    ); //NOWOSC 
+    
     game->start_round();
 
     return true;

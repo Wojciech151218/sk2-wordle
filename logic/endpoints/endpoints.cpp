@@ -10,11 +10,15 @@ GameState game_state = GameState(60);
 
 void set_game_state_cron() {
     Cron& cron = Cron::instance();
-    cron.add_job("round_finish", []() {
-        nlohmann::json json = game_state;
-        Logger::instance().debug("Sending game state to all clients : " + json.dump());
-        WebSocketPool::instance().broadcast_all(json);
-    }, std::chrono::seconds(60), Cron::JobMode::OFF);
+    cron.add_job(
+        "round_finish", 
+        []() {
+            Logger::instance().info("Round finished");
+            game_state.next_round();
+            nlohmann::json json = game_state;
+            WebSocketPool::instance().broadcast_all(json);
+        },
+   std::chrono::seconds(60), Cron::JobMode::OFF);
 };
 
 ServerMethod join_method = ServerMethod<JoinRequest>("/join", HttpMethod::POST, 

@@ -35,7 +35,17 @@ Round::Round(std::vector<Player*> player_list, time_t round_duration)
 bool Round::is_round_active() {
     return std::time(nullptr) < round_end_time;
 }
+bool Round::check_if_round_is_over() const {
+    for (auto& [player, guesses] : players_map) {
+        if (!player) continue;
+        if (!player->is_alive) continue; // już odpadł np. przez 6 błędów
 
+        if(!guesses.has_won()) {
+            return false;
+        }
+    }
+    return true;
+}
 /*
     make_guess:
     - sprawdza czy runda trwa, gracz istnieje i żyje

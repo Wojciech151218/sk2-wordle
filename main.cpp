@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
     config.set_logger_options();
 
  
-
+    set_game_state_cron();
     Cron& game_cron = Cron::instance();
     game_cron.start();
 

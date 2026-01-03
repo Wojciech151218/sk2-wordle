@@ -3,10 +3,15 @@
 #include <utility>
 #include <ctime>
 
+#include "server/cron/cron.h"
+
 // Tworzymy grę na podstawie listy graczy (już w rozgrywce) i czasu rundy
 Game::Game(std::vector<Player> player, time_t round_duration):
       round_duration(round_duration),
       players_list(std::move(player)){
+
+    Cron& cron = Cron::instance();
+    cron.set_job_interval("round_finish", std::chrono::seconds(round_duration));
 
     // ustawienia czasu rund i gry
     game_start_time = std::time(nullptr);
@@ -24,6 +29,10 @@ Player* Game::find_player_ptr_by_name(const std::string& name) {
 
 // Startuje nową rundę
 bool Game::start_round() {
+
+    Cron& cron = Cron::instance();
+    cron.reset_job_next_run("round_finish");
+    cron.set_job_mode("round_finish", Cron::JobMode::ONCE);
 
     // Jeśli gra już powinna się skończyć, to nie startuj nowej rundy
     if (check_if_game_is_over()) {
@@ -104,6 +113,17 @@ Result<std::vector<WordleWord>> Game::make_guess(const std::string& player_name,
     if (!p->is_alive) return Error("Player eliminated", HttpStatusCode::FORBIDDEN);
 
     // TU DODAJESZ client_ts
-    return rounds.back().make_guess(p, guess, client_ts);
+
+    auto most_recent_round = rounds.back();
+    auto result = most_recent_round.make_guess(p, guess, client_ts);
+    if(result.is_err()) {
+        return result.unwrap_err();
+    }
+    // check if whole game is over as well
+    if(most_recent_round.check_if_round_is_over()) {
+        start_round();
+        return std::vector<WordleWord>();
+    }
+    return result.unwrap();
 }
 

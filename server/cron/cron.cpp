@@ -162,8 +162,17 @@ void Cron::set_job_interval(const std::string& identifier, std::chrono::millisec
         }
     });
 }
+void Cron::reset_job_next_run(const std::string& identifier) {
+    atomic([&]() {
+        auto it = jobs.find(identifier);
+        if (it != jobs.end()) {
+            it->second.next_run = std::chrono::steady_clock::now() + it->second.interval;
+        }
+    });
+}
 
 void Cron::set_job_settings(const std::string& identifier, JobMode mode, std::chrono::milliseconds interval) {
+    reset_job_next_run(identifier);
     set_job_mode(identifier, mode);
     set_job_interval(identifier, interval);
 }

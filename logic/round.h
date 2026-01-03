@@ -29,6 +29,8 @@ public:
     // czy runda jeszcze trwa czasowo
     bool is_round_active();
 
+    bool check_if_round_is_over() const;
+
     // gracz zgaduje:
     // - jeśli guess był błędny => round_errors++
     Result<std::vector<WordleWord>> make_guess(Player* player,

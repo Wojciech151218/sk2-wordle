@@ -48,6 +48,7 @@ public:
 
     // Kończy grę i resetuje stan (przerzuca graczy z powrotem do lobby)
     void end_game();
+    void next_round();
 
     void game_tick(); // ta metoda bedzie gdzies wywolywana asychronicznie by zegar gry szedl do przodu
 

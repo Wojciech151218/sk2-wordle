@@ -5,7 +5,7 @@
 #include <memory>
 #include "server/cron/cron.h"
 
-extern std::unique_ptr<Cron> get_game_cron();
+extern void set_game_state_cron();
 
 extern ServerMethod<JoinRequest> join_method;
 extern ServerMethod<StateRequest> state_method;
