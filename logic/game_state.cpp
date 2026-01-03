@@ -11,23 +11,32 @@ GameState::GameState(time_t round_duration)
 
 Result<GameState> GameState::add_player(const JoinRequest& request) {
     std::string player_name = request.player_name;
-    // blokada duplikatów w lobby
-    for (size_t i = 0; i < players_list.size(); ++i) {
-        const Player& p = players_list[i];
-        if (p.player_name == player_name) 
-            return Error("Player already in lobby", HttpStatusCode::FORBIDDEN);
-    }
 
-    // jeśli gra trwa, to też blokujemy duplikaty z aktualnej rozgrywki
-    if (game.has_value()) {
-        for (const auto& p : game->players_list) {
-            if (p.player_name == player_name) 
-                return Error("Player already in game", HttpStatusCode::FORBIDDEN);
-        }
-    }
+    //todo
+    // blokada duplikatów w lobby
+    // for (size_t i = 0; i < players_list.size(); ++i) {
+    //     const Player& p = players_list[i];
+    //     if (p.player_name == player_name) 
+    //         return Error("Player already in lobby", HttpStatusCode::FORBIDDEN);
+    // }
+
+    // // jeśli gra trwa, to też blokujemy duplikaty z aktualnej rozgrywki
+    // if (game.has_value()) {
+    //     for (const auto& p : game->players_list) {
+    //         if (p.player_name == player_name) 
+    //             return Error("Player already in game", HttpStatusCode::FORBIDDEN);
+    //     }
+    // }
+    // players_list.emplace_back(player_name);
+
 
     // dodaj do lobby
-    players_list.emplace_back(player_name);
+
+    if(std::find_if(players_list.begin(), players_list.end(), 
+    [&](const Player& p){ return p.player_name == player_name; }) == players_list.end()) {
+        players_list.push_back(player_name);
+    }
+
     return Result<GameState>(*this);
 }
 
