@@ -1,43 +1,33 @@
+import React from 'react';
+import { GameStateDisplay } from './GameStateDisplay';
+import { useGameContext } from '../context';
+
 /**
  * Lobby Screen - Shown when player is in lobby (game is null)
  */
+export const LobbyScreen: React.FC = () => {
+  const {
+    gameState,
+    connectionStatus,
+    playerName,
+    readyUp,
+    leaveGame,
+    apiLoading,
+    errorMessage,
+  } = useGameContext();
 
-import React from 'react';
-import type { GameState } from '../types';
-import { GameStateDisplay } from './GameStateDisplay';
-
-interface LobbyScreenProps {
-  gameState: GameState | null;
-  isConnected: boolean;
-  playerName: string;
-  onReady: () => Promise<void>;
-  onLeave: () => Promise<void>;
-  loading: boolean;
-  error: string | null;
-}
-
-export const LobbyScreen: React.FC<LobbyScreenProps> = ({
-  gameState,
-  isConnected,
-  playerName,
-  onReady,
-  onLeave,
-  loading,
-  error,
-}) => {
-  const currentPlayer = gameState?.players_list.find(
-    (p) => p.player_name === playerName
-  );
+  const safePlayerName = playerName ?? '';
+  const currentPlayer = gameState?.players_list.find((p) => p.player_name === safePlayerName);
 
   return (
     <div className="screen lobby-screen">
       <div className="screen-content">
         <header className="screen-header">
           <h1>⚔️ Wordle Battle Royale</h1>
-          <p className="subtitle">Welcome, <strong>{playerName}</strong>!</p>
+          <p className="subtitle">Welcome, <strong>{safePlayerName}</strong>!</p>
         </header>
 
-        <GameStateDisplay gameState={gameState} isConnected={isConnected} />
+        <GameStateDisplay />
 
         <div className="lobby-actions">
           <div className="player-status">
@@ -48,24 +38,28 @@ export const LobbyScreen: React.FC<LobbyScreenProps> = ({
             )}
           </div>
 
-          {error && (
+          {errorMessage && (
             <div className="error-message">
-              {error}
+              {errorMessage}
             </div>
           )}
 
           <div className="action-buttons">
             <button
-              onClick={onReady}
-              disabled={loading || !isConnected || currentPlayer?.is_ready}
+              onClick={readyUp}
+              disabled={
+                apiLoading ||
+                connectionStatus !== 'connected' ||
+                currentPlayer?.is_ready
+              }
               className="btn btn-primary btn-large"
             >
-              {loading ? 'Processing...' : currentPlayer?.is_ready ? 'Ready!' : 'Ready Up'}
+              {apiLoading ? 'Processing...' : currentPlayer?.is_ready ? 'Ready!' : 'Ready Up'}
             </button>
 
             <button
-              onClick={onLeave}
-              disabled={loading || !isConnected}
+              onClick={leaveGame}
+              disabled={apiLoading || connectionStatus !== 'connected'}
               className="btn btn-secondary btn-large"
             >
               Leave Game

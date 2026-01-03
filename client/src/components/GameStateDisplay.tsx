@@ -1,21 +1,13 @@
+import React from 'react';
+import { useGameContext } from '../context';
+
 /**
  * Reusable component to display game state information
  * Used in both Join and Lobby screens
  */
-
-import React from 'react';
-import type { GameState } from '../types';
-
-interface GameStateDisplayProps {
-  gameState: GameState | null;
-  isConnected: boolean;
-}
-
-export const GameStateDisplay: React.FC<GameStateDisplayProps> = ({
-  gameState,
-  isConnected,
-}) => {
-  if (!isConnected) {
+export const GameStateDisplay: React.FC = () => {
+  const { gameState, connectionStatus } = useGameContext();
+  if (connectionStatus === 'disconnected') {
     return (
       <div className="state-display">
         <div className="status-badge status-disconnected">
@@ -34,9 +26,10 @@ export const GameStateDisplay: React.FC<GameStateDisplayProps> = ({
     );
   }
 
-  const isGameRunning = gameState.game !== null;
+  const activeGame = gameState.game;
+  const isGameRunning = Boolean(activeGame);
   const playersInLobby = isGameRunning 
-    ? gameState.game.players_list 
+    ? activeGame!.players_list 
     : gameState.players_list;
 
   return (

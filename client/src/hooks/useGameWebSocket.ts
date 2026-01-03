@@ -137,8 +137,15 @@ export const useGameWebSocket = (
     try {
       const data = JSON.parse(event.data);
       
-      // Validate that it's a GameState object
-      if (data && typeof data === 'object') {
+      // Validate that it's a GameState object with required fields
+      if (
+        data && 
+        typeof data === 'object' &&
+        Array.isArray(data.players_list) &&
+        typeof data.round_end_time === 'number' &&
+        typeof data.round_duration === 'number' &&
+        typeof data.game_start_time === 'number'
+      ) {
         setGameState(data as GameState);
         setLastMessageTime(new Date());
         setMessageCount(prev => prev + 1);
@@ -150,7 +157,7 @@ export const useGameWebSocket = (
     } catch (error) {
       console.error('[WebSocket] Failed to parse message:', error);
     }
-  }, []);
+  }, [setGameState]);
 
   const handleError = useCallback((event: Event) => {
     console.error('[WebSocket] Connection error:', event);

@@ -1,37 +1,30 @@
-/**
- * Game Screen - Active game view with Wordle board, keyboard, and player stats
- */
-
 import React, { useState, useEffect, useCallback } from 'react';
-import type { GameState, GuessHistory } from '../types';
 import { WordleBoard } from './WordleBoard';
 import { GameKeyboard } from './GameKeyboard';
 import { PlayerStats } from './PlayerStats';
+import { useGameContext } from '../context';
+import type { GuessHistory } from '../types';
 
-interface GameScreenProps {
-  gameState: GameState | null;
-  playerName: string;
-  onGuess: (guess: string) => Promise<GuessHistory | null>;
-  onLeave: () => Promise<void>;
-  loading: boolean;
-  error: string | null;
-}
-
-export const GameScreen: React.FC<GameScreenProps> = ({
-  gameState,
-  playerName,
-  onGuess,
-  onLeave,
-  loading,
-  error,
-}) => {
+/**
+ * Game Screen - Active game view with Wordle board, keyboard, and player stats
+ */
+export const GameScreen: React.FC = () => {
+  const {
+    gameState,
+    playerName,
+    submitGuess,
+    leaveGame,
+    apiLoading,
+    errorMessage,
+  } = useGameContext();
   const [currentGuess, setCurrentGuess] = useState('');
   const [guessHistory, setGuessHistory] = useState<GuessHistory>([]);
   const [localError, setLocalError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const resolvedPlayerName = playerName ?? '';
   const game = gameState?.game;
-  const currentPlayer = game?.players_list.find((p) => p.player_name === playerName);
+  const currentPlayer = game?.players_list.find((p) => p.player_name === resolvedPlayerName);
   const isAlive = currentPlayer?.is_alive ?? false;
   const wordLength = 5; // Standard Wordle word length
   const maxAttempts = 6;
@@ -82,7 +75,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
     setLocalError(null);
 
     try {
-      const result = await onGuess(currentGuess);
+      const result = await submitGuess(currentGuess);
       if (result) {
         setGuessHistory(result);
         setCurrentGuess('');
@@ -92,7 +85,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
     } finally {
       setIsSubmitting(false);
     }
-  }, [isAlive, isSubmitting, currentGuess, wordLength, onGuess, guessHistory.length]);
+  }, [isAlive, isSubmitting, currentGuess, wordLength, submitGuess, guessHistory.length]);
 
   // Listen to physical keyboard
   useEffect(() => {
@@ -132,7 +125,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
         <aside className="game-sidebar">
           <PlayerStats
             players={game.players_list}
-            currentPlayerName={playerName}
+            currentPlayerName={resolvedPlayerName}
             roundNumber={currentRound}
           />
         </aside>
@@ -177,8 +170,8 @@ export const GameScreen: React.FC<GameScreenProps> = ({
               wordLength={wordLength}
             />
 
-            {(error || localError) && (
-              <div className="error-message">{error || localError}</div>
+            {(errorMessage || localError) && (
+              <div className="error-message">{errorMessage || localError}</div>
             )}
 
             <GameKeyboard
@@ -186,12 +179,17 @@ export const GameScreen: React.FC<GameScreenProps> = ({
               onEnter={handleEnter}
               onBackspace={handleBackspace}
               guessHistory={guessHistory}
-              disabled={!isAlive || isSubmitting || isGameOver || guessHistory.length >= maxAttempts}
+              disabled={
+                !isAlive ||
+                isSubmitting ||
+                isGameOver ||
+                guessHistory.length >= maxAttempts
+              }
             />
           </div>
 
           <div className="game-actions">
-            <button onClick={onLeave} className="btn btn-secondary" disabled={loading}>
+            <button onClick={leaveGame} className="btn btn-secondary" disabled={apiLoading}>
               Leave Game
             </button>
           </div>
