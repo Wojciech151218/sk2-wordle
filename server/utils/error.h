@@ -12,7 +12,7 @@ class Error {
 
   public:
     explicit Error(std::string message, HttpStatusCode http_status_code = HttpStatusCode::INTERNAL_SERVER_ERROR);
-    std::string get_message() const;
+    std::string get_message(bool include_errno = true) const;
     void handle_error(bool should_exit = false) const;
     HttpStatusCode get_http_status_code() const;
 };

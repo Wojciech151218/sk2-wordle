@@ -14,7 +14,7 @@ HttpResponse HttpResponse::from_json(const Result<nlohmann::json> & json) {
     if (json.is_err()) {
         Error error = json.unwrap_err(false);
         auto status = error.get_http_status_code();
-        std::string error_message = nlohmann::json({{"message", error.get_message()}}).dump();
+        std::string error_message = nlohmann::json({{"message", error.get_message(false)}}).dump();
 
         return HttpResponse(
             error_message,

@@ -165,10 +165,12 @@ void TcpServer::read_until_eagain(TcpSocket& client_socket) {
         }
         auto response = handle_message_result.unwrap();
         client_socket.set_send_buffer(response);
-        auto half_closed = client_socket.get_metadata("half_closed");
-
-        if(half_closed.has_value() && half_closed.value()) {
-            client_socket.shutdown_read().log_error("Failed to shutdown read while half closed");
+        if(client_socket.is_half_closed()) {
+            auto read_result = client_socket.shutdown_read();
+            if(read_result.log_error("Failed to shutdown read while half closed").is_err()) {
+                handle_error(client_socket);
+                return;
+            }
         }
     }
 

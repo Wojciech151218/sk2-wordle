@@ -12,12 +12,14 @@ Error::Error(std::string message, HttpStatusCode http_status_code)
         errno_value = errno;
     }
 
-std::string Error::get_message() const {
-    if (errno != 0) {
+std::string Error::get_message(bool include_errno) const {
+    if (include_errno && errno != 0) {
         return message + " (errno=" + std::to_string(errno_value) + ": " + std::strerror(errno_value) + ")";
     }
     return message;
 }
+
+
 
 void Error::handle_error(bool should_exit) const {
     std::cout << message << " " << errno_value << " " << strerror(errno_value) << std::endl;

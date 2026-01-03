@@ -58,7 +58,7 @@ Result<std::string> WebSocketServer::handle_message(TcpSocket& socket, std::stri
         if(frame.opcode == WsOpcode::Close) {
             WebSocketFrame response = WebSocketFrame::close(WsCloseCode::NORMAL_CLOSURE);
             socket.set_send_buffer(response.to_string());
-            socket.set_metadata("half_closed", true);
+            socket.set_half_closed();
             return Result<std::string>(response.to_string());
         }
 

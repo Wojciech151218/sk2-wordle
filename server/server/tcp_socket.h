@@ -14,6 +14,7 @@ class TcpSocket {
     std::chrono::steady_clock::time_point last_activity;
     std::function<std::optional<std::string>(std::string)> protocol_callback;
     std::unordered_map<std::string, bool> metadata;
+    bool half_closed = false;
   
 
     std::string recv_buffer;
@@ -31,7 +32,14 @@ class TcpSocket {
     void set_protocol_callback(std::function<std::optional<std::string>(std::string)> callback) {
       protocol_callback = callback;
     }
- 
+
+    void set_half_closed(bool value = true) {
+      half_closed = value;
+    }
+
+    bool is_half_closed() const {
+      return half_closed;
+    }
 
     void set_metadata(const std::string& key, bool value) {
       metadata[key] = value;
