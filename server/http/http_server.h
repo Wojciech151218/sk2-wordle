@@ -12,7 +12,7 @@ class HttpServer : public TcpServer {
     Router router;
 
     std::string get_response_info(const HttpRequest& http_request,const HttpResponse& response, const TcpSocket& socket) const;
-    void handle_message(TcpSocket& socket, std::string message) override;
+    Result<std::string> handle_message(TcpSocket& socket, std::string message) override;
     void on_client_connected(TcpSocket& client_socket) override;
 
   public:

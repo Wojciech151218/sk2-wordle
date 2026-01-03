@@ -97,7 +97,6 @@ template <typename T>
 inline Result<int> Result<T>::from_bsd(int value, const std::string& error_message) {
     if (value < 0) {
         Error error(error_message);
-        Logger::instance().error(error);
         return Result<int>(error);
     }
     return Result<int>(value);
@@ -205,7 +204,7 @@ inline Result<T> Result<T>::log_error() && {
 template <typename T>
 inline const Result<T>& Result<T>::log_error(const std::string& error_message) const & {
     if (is_err()) {
-        logger.error(error_message + " " + left.value().get_message() );
+        logger.error(error_message + " : " + left.value().get_message() );
     }
     return *this;
 }

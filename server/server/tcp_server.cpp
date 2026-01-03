@@ -10,7 +10,7 @@
 TcpServer::TcpServer()
     :
       thread_pool(10, [this](TcpSocket& client) { }),
-      client_timeout(std::chrono::seconds(2)),
+      client_timeout(std::chrono::seconds(30)),
       epoll_fd(epoll_create1(0))
     {
         if (epoll_fd == -1) {
@@ -45,7 +45,7 @@ void TcpServer::stop() {
         ":" + 
         std::to_string(server_socket.get_port().value_or(0)))
     );
-    server_socket.disconnect();
+    server_socket.hard_close();
     
     if (server_thread.joinable()) {
         server_thread.join();
@@ -69,13 +69,17 @@ void TcpServer::handle_server_event() {
     if (accept_result.log_error("Failed to accept connection").is_err()) return;
 
     TcpSocket client_socket = accept_result.unwrap();
+
+    logger.debug("Accepted connection from " + client_socket.socket_info());
     on_client_connected(client_socket);
 
     int client_fd = client_socket.get_fd();
     connections.emplace(client_fd, std::move(client_socket));
+
     struct epoll_event client_ev;
     client_ev.events = EPOLLIN | EPOLLOUT | EPOLLRDHUP | EPOLLET;
     client_ev.data.fd = client_fd;
+    
     if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &client_ev) == -1) {
         logger.error(Error("Failed to add client socket to epoll"));
         connections.erase(client_fd);
@@ -95,12 +99,13 @@ void TcpServer::handle_client_event(int fd,uint32_t events) {
     TcpSocket& client_socket = it->second;
 
     if (events & (EPOLLHUP | EPOLLERR)) {
-        drain_and_close(client_socket);
+        handle_error(client_socket);
         return;
     }
     
     if (events & EPOLLRDHUP) {
-        mark_peer_half_closed(client_socket);
+        drain_and_close(client_socket);
+        return;
     }
     
     if (events & EPOLLIN) {
@@ -112,24 +117,29 @@ void TcpServer::handle_client_event(int fd,uint32_t events) {
     }
 }
 
+void TcpServer::handle_socket_close(TcpSocket& client_socket) {
+    epoll_ctl(epoll_fd, EPOLL_CTL_DEL, client_socket.get_fd(), nullptr);
+    connections.erase(client_socket.get_fd());
+
+}
 
 void TcpServer::drain_and_close(TcpSocket& client_socket) {
     logger.debug("Draining and closing client " + client_socket.socket_info());
-
-    auto messages = client_socket.flush_messages();
-    for (auto& message : messages) {
-        handle_message(client_socket, message);
+    auto shutdown_result = client_socket.shutdown_read();
+    if(shutdown_result.log_error("Failed to shutdown read").is_err()) {
+        handle_error(client_socket);
+        return;
     }
-
-    epoll_ctl(epoll_fd, EPOLL_CTL_DEL, client_socket.get_fd(), nullptr);
-    connections.erase(client_socket.get_fd());
-    client_socket.disconnect();
-}
-
-void TcpServer::mark_peer_half_closed(TcpSocket& client_socket) {
-    logger.debug("Marking peer half closed for client " + client_socket.socket_info());
-
-    client_socket.set_half_closed();
+    auto drain_result = client_socket.drain();
+    if(drain_result.log_error("Failed to drain while closing connection").is_err()) {
+        handle_error(client_socket);
+        return;
+    }
+    if(drain_result.unwrap()) {
+        logger.debug("Drained client " + client_socket.socket_info());
+        handle_socket_close(client_socket);
+        client_socket.close().log_error("Failed to close socket");
+    }
 }
 
 void TcpServer::read_until_eagain(TcpSocket& client_socket) {
@@ -143,11 +153,23 @@ void TcpServer::read_until_eagain(TcpSocket& client_socket) {
         return;
     }
     if(receive_result.unwrap()) {
-        client_socket.set_half_closed();
+        logger.debug("Received EOF from client " + client_socket.socket_info());
+        client_socket.shutdown_read().log_error("Failed to shutdown read");
     }
     auto messages = client_socket.flush_messages();
     for (auto& message : messages) {
-        handle_message(client_socket, message);
+        auto handle_message_result = handle_message(client_socket, message);
+        if(handle_message_result.log_error("Failed to handle message").is_err()) {
+            handle_error(client_socket);
+            return;
+        }
+        auto response = handle_message_result.unwrap();
+        client_socket.set_send_buffer(response);
+        auto half_closed = client_socket.get_metadata("half_closed");
+
+        if(half_closed.has_value() && half_closed.value()) {
+            client_socket.shutdown_read().log_error("Failed to shutdown read while half closed");
+        }
     }
 
 
@@ -161,17 +183,29 @@ void TcpServer::write_until_eagain(TcpSocket& client_socket) {
         handle_error(client_socket);
         return;
     }
-    if(send_result.unwrap() && client_socket.get_half_closed()) {
-        client_socket.disconnect();
+    if(send_result.unwrap()) {
+        client_socket.hard_close();
     }
 }
 
 void TcpServer::handle_error(TcpSocket& client_socket) {
-    client_socket.disconnect();
+    handle_socket_close(client_socket);
+    client_socket.hard_close().log_error("Failed to hard close socket");
 }
 
 
-
+void TcpServer::close_idle_connections() {
+    for (auto& [fd, socket] : connections) {
+        if (socket.should_timeout(client_timeout)) {
+            logger.debug("Closing idle connection " + socket.socket_info());
+            auto shutdown_result = socket.shutdown_read();
+            if(shutdown_result.log_error("Failed to shutdown read").is_err()) {
+                handle_error(socket);
+                return;
+            }
+        }
+    }
+}
 
 
 void TcpServer::run_loop() {
@@ -204,15 +238,16 @@ void TcpServer::run_loop() {
             else handle_client_event(fd,ev);    
         }
 
+        close_idle_connections();
     }
 
     close(epoll_fd);
 }
 
-void TcpServer::set_client_timeout(std::chrono::milliseconds timeout) {
+void TcpServer::set_client_timeout(std::chrono::seconds timeout) {
     client_timeout = timeout;
 }
 
 std::chrono::milliseconds TcpServer::get_client_timeout() const {
-    return client_timeout;
+    return std::chrono::duration_cast<std::chrono::milliseconds>(client_timeout);
 }

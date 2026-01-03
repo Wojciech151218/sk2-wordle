@@ -19,17 +19,17 @@ enum class WsOpcode : uint8_t {
 };
 
 enum class WsCloseCode : uint16_t {
-    NormalClosure      = 1000,
-    GoingAway          = 1001,
-    ProtocolError      = 1002,
-    UnsupportedData    = 1003,
-    NoStatusRcvd       = 1005,
-    AbnormalClosure    = 1006,
-    InvalidPayload     = 1007,
-    PolicyViolation    = 1008,
-    MessageTooBig      = 1009,
-    MandatoryExt       = 1010,
-    InternalError      = 1011
+    NORMAL_CLOSURE     = 1000,
+    GOING_AWAY         = 1001,
+    PROTOCOL_ERROR     = 1002,
+    UNSUPPORTED_DATA   = 1003,
+    NO_STATUS_RCVD     = 1005,
+    ABNORMAL_CLOSURE   = 1006,
+    INVALID_PAYLOAD    = 1007,
+    POLICY_VIOLATION   = 1008,
+    MESSAGE_TOO_BIG    = 1009,
+    MANDATORY_EXT      = 1010,
+    INTERNAL_ERROR     = 1011
 };
 
 class WebSocketFrame {
@@ -62,7 +62,7 @@ class WebSocketFrame {
         static WebSocketFrame pong(const std::vector<uint8_t>& payload = {});
 
         static WebSocketFrame close(
-            WsCloseCode code = WsCloseCode::NormalClosure,
+            WsCloseCode code = WsCloseCode::NORMAL_CLOSURE,
             const std::string& reason = ""
         );
         Result<nlohmann::json> to_json() const;

@@ -73,22 +73,38 @@ Result<TcpSocket> TcpSocket::listen(const std::string& host, int port, int max_c
 }
 
 
-Result<void*> TcpSocket::disconnect() {
+Result<void*> TcpSocket::hard_close() {
     return check_connected("Socket not connected while disconnecting")
     .chain_from_bsd(
         shutdown(this->socket_fd, SHUT_RDWR),
         "Failed to shutdown socket"
     )
     .chain_from_bsd(
-        close(this->socket_fd),
+        ::close(this->socket_fd),
         "Failed to close socket"
     )
     .finally<void*>([&]() {
-        this->socket_fd = 0;
+        this->socket_fd = -1;
         host.reset();
         port.reset();
         return nullptr;
     });
+}
+
+Result<int> TcpSocket::shutdown_read() {
+    return check_connected("Socket not connected while shutting down read")
+    .chain_from_bsd(
+        shutdown(this->socket_fd, SHUT_RD),
+        "Failed to shutdown socket"
+    );
+}
+
+Result<int> TcpSocket::close() {
+    return check_connected("Socket not connected while closing")
+    .chain_from_bsd(
+        ::close(this->socket_fd),
+        "Failed to close socket"
+    );
 }
 
 void TcpSocket::set_send_buffer(std::string data) {
@@ -131,6 +147,30 @@ Result<bool> TcpSocket::send() {
 
 void TcpSocket::drain_buffer() {
     recv_buffer.clear();
+}
+
+Result<bool> TcpSocket::drain() {
+    char buffer[4096];
+
+    return check_connected("Socket not connected while draining")
+    .chain<bool>([&](int _) {
+        while(true) {
+            ssize_t n = recv(this->socket_fd, buffer, sizeof(buffer), 0);
+
+            if (n > 0) {
+                continue;  // discard
+            }
+
+            if (n == 0) {
+                return Result<bool>(true);     // peer closed → drained
+            }
+
+            if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                return Result<bool>(false);
+            }
+            return Result<bool>(Error("recv returned error"));
+        }
+    });
 }
 
 Result<bool> TcpSocket::receive() {

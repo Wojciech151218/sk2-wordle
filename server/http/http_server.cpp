@@ -7,6 +7,7 @@
 #include "server/http/server_method.h"
 
 HttpServer::HttpServer() : TcpServer() {
+    set_client_timeout(std::chrono::seconds(60));
     router.add_method(
         ServerMethod<EmptyRequestBody>("/health", HttpMethod::GET, 
                 [](const EmptyRequestBody& request) {
@@ -42,7 +43,7 @@ void HttpServer::on_client_connected(TcpSocket& client_socket) {
         return std::optional<std::string>(data);
     });
 }
-void HttpServer::handle_message(TcpSocket& socket, std::string message) {
+Result<std::string> HttpServer::handle_message(TcpSocket& socket, std::string message) {
     HttpRequest request(message);
     HttpResponse response = router.handle_request(request);
     auto response_info = get_response_info(request, response, socket);
@@ -51,6 +52,6 @@ void HttpServer::handle_message(TcpSocket& socket, std::string message) {
     }else{
         Logger::instance().info(response_info);
     }
-    socket.set_send_buffer(response.to_string());
+    return Result<std::string>(response.to_string());
 }
 

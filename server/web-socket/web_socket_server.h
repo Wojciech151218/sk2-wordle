@@ -6,12 +6,11 @@ class WebSocketServer : public TcpServer{
 
 
     protected:
-        void handle_state_change(TcpSocket& socket) override;
-
+        void on_client_connected(TcpSocket& client_socket) override;
+        Result<std::string> handle_message(TcpSocket& socket, std::string message) override;
 
     public:
         void start(int port, std::string address);
         WebSocketServer();
 
-        Result<bool> handle_connected(TcpSocket& socket) override;
 };

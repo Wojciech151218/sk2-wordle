@@ -13,8 +13,7 @@ class TcpSocket {
     std::optional<int> port;
     std::chrono::steady_clock::time_point last_activity;
     std::function<std::optional<std::string>(std::string)> protocol_callback;
-    std::unordered_map<std::string, std::string> metadata;
-    bool is_half_closed = false;
+    std::unordered_map<std::string, bool> metadata;
   
 
     std::string recv_buffer;
@@ -25,26 +24,20 @@ class TcpSocket {
     void touch();
 
   
-  public:
+  public: 
 
-    
-      
+  
 
     void set_protocol_callback(std::function<std::optional<std::string>(std::string)> callback) {
       protocol_callback = callback;
     }
-    void set_half_closed() {
-      is_half_closed = true;
-    }
-    bool get_half_closed() const {
-      return is_half_closed;
-    }
+ 
 
-    void set_metadata(const std::string& key, const std::string& value) {
+    void set_metadata(const std::string& key, bool value) {
       metadata[key] = value;
     }
-    std::optional<std::string> get_metadata(const std::string& key) const {
-      return metadata.find(key) != metadata.end() ? std::optional<std::string>(metadata.at(key)) : std::nullopt;
+    std::optional<bool> get_metadata(const std::string& key) const {
+      return metadata.find(key) != metadata.end() ? std::optional<bool>(metadata.at(key)) : std::nullopt;
     }
 
     TcpSocket();
@@ -52,7 +45,10 @@ class TcpSocket {
 
     Result<TcpSocket> listen(const std::string& host, int port, int max_connections = 10);
     //Result<TcpSocket> connect(const std::string& host, int port);
-    Result<void*> disconnect();
+    Result<void*> hard_close();
+    Result<int> close();
+    Result<int> shutdown_read();
+    Result<bool> drain();
 
     void set_send_buffer(std::string data);
     Result<bool> send();
@@ -70,7 +66,10 @@ class TcpSocket {
     int get_fd() const;
 
     std::chrono::milliseconds time_since_last_activity() const;
-    bool should_timeout(const std::chrono::milliseconds& timeout) const {
+    bool should_timeout(const std::chrono::seconds& timeout) const {
+      if (timeout == std::chrono::seconds::max()) {
+        return false;
+      }
       return time_since_last_activity() > timeout ;
     }
 

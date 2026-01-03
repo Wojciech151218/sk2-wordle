@@ -17,61 +17,69 @@ void WebSocketServer::start(int port, std::string address) {
     TcpServer::start(port, address);
 }
 
-Result<bool> WebSocketServer::handle_connected(TcpSocket& socket) {
-    socket.set_protocol_callback([&](std::string data) {
-        return true;
-    });
-    return TcpServer::handle_connected(socket);
-}
+Result<std::string> WebSocketServer::handle_message(TcpSocket& socket, std::string message) {
+    auto handshake_status = socket.get_metadata("handshake_status");
+    if(!handshake_status.has_value()) {
+        HttpRequest request(message);
 
-void WebSocketServer::handle_state_change(TcpSocket& socket) {
-    switch (socket.get_connection_state()) {
-        case TcpSocket::ConnectionState::CONNECTED: {
+        bool is_get_request = request.get_method() == HttpMethod::GET;
+        bool is_ws_path = request.get_path() == "/ws";
+        if(!is_get_request || !is_ws_path) {
 
-            auto handshake = socket.flush_recv();
-            HttpRequest http_request(handshake);
+            HttpResponse response =  is_get_request ? 
+            HttpResponse::from_json(Error("Invalid request", HttpStatusCode::METHOD_NOT_ALLOWED)) 
+            : HttpResponse::from_json(Error("Invalid request", HttpStatusCode::NOT_FOUND));
+            return Result<std::string>(response.to_string());
+        }
+        auto handshake_key = handshake_request(request);
+        if(handshake_key.is_err()) {
+            HttpResponse response = HttpResponse::from_json(Error("Invalid request", HttpStatusCode::BAD_REQUEST));
+            return Result<std::string>(response.to_string());
+        }
 
-            if (http_request.get_method() != HttpMethod::GET || http_request.get_path() != "/ws") {
-                socket.set_connection_state(TcpSocket::ConnectionState::CLOSING);
-                return;
-            }
+        auto response = handshake_response(handshake_key.unwrap());
+        socket.set_metadata("handshake_status", true);
+        socket.set_protocol_callback([&](std::string data) {
+            //should switch to websocket frame handling
+            if (data.empty()) return std::optional<std::string>();
+            return std::optional<std::string>(data);
+        });
+        return Result<std::string>(response.to_string());
 
-            auto client_key = handshake_request(http_request);
-            if (client_key.is_err()) {
-                socket.set_connection_state(TcpSocket::ConnectionState::CLOSING);
-                return;
-            }
-            auto response = handshake_response(client_key.unwrap());
+    }else if(handshake_status) {
+        auto frame_result = WebSocketFrame::from_raw_data(message);
+        if(frame_result.is_err()) {
+            WebSocketFrame response = WebSocketFrame::close(WsCloseCode::PROTOCOL_ERROR);
+            Logger::instance().error("Failed to parse frame from client " + socket.socket_info());
+            socket.set_metadata("half_closed", true);
+            return Result<std::string>(response.to_string());
+        }
+        auto frame = frame_result.unwrap();
+        if(frame.opcode == WsOpcode::Close) {
+            WebSocketFrame response = WebSocketFrame::close(WsCloseCode::NORMAL_CLOSURE);
             socket.set_send_buffer(response.to_string());
-            socket.set_connection_state(TcpSocket::ConnectionState::WRITING);
-            Logger::instance().info("Handshake successful for connection: " + socket.socket_info());
-            socket.set_protocol_callback([&](std::string data) {
-                //todo: handle websocket frames
-                return true;
-            });
-            break;
+            socket.set_metadata("half_closed", true);
+            return Result<std::string>(response.to_string());
         }
-        case TcpSocket::ConnectionState::WRITING:
-            socket.set_connection_state(TcpSocket::ConnectionState::IDLE);
-            break;
-            
-        case TcpSocket::ConnectionState::IDLE:
-        case TcpSocket::ConnectionState::READING: {
-            auto message = socket.flush_recv();
-            auto frame = WebSocketFrame::from_raw_data(message).log_error();
-            if (frame.is_err()) {
-                socket.set_connection_state(TcpSocket::ConnectionState::CLOSING);
-                return;
-            }
-            auto payload = frame.unwrap().payload_as_string();
-            Logger::instance().debug("Received message: " + payload);
-            
-            socket.set_connection_state(TcpSocket::ConnectionState::IDLE);
-            break;
-        }
-        
-        case TcpSocket::ConnectionState::CLOSING:
-            socket.set_connection_state(TcpSocket::ConnectionState::CLOSING);
-            break;
+
+        auto frame_payload = frame.payload_as_string();
+        Logger::instance().debug("Received frame from client " + frame_payload);
+
+        //echo todo
+        auto response = WebSocketFrame::text(frame_payload);
+        return Result<std::string>(response.to_string());
+
+    }else{
+        Logger::instance().error("Handshake failed for client " + socket.socket_info());
+        return Error("Unexpected message handler status");
     }
 }
+
+void WebSocketServer::on_client_connected(TcpSocket& client_socket) {
+    client_socket.set_protocol_callback([&](std::string data) {
+        // should add http callback
+        if (data.empty()) return std::optional<std::string>();
+        return std::optional<std::string>(data);
+    });
+}
+   

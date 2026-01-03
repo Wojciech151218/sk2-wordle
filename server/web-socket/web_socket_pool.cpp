@@ -14,7 +14,6 @@ void WebSocketPool::broadcast_all(const nlohmann::json& json) {
             auto frame = WebSocketFrame::text(json.dump());
             
             connection.set_send_buffer(frame.to_string());
-            connection.set_connection_state(TcpSocket::ConnectionState::WRITING);
             connection.send();
             logger->info("Broadcasted to connection: " + connection.socket_info());
         }
