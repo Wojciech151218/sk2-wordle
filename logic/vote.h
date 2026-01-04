@@ -6,7 +6,7 @@
 
 class Vote{
     private:
-        std::string player_name;
+        std::string voted_player;
         std::vector<std::string> votes_for;
         std::vector<std::string> votes_against;
 
@@ -19,8 +19,8 @@ class Vote{
         bool get_result() const;
 
         std::string get_player_name() const{
-            return player_name;
+            return voted_player;
         }
         bool is_vote_ended(int player_count) const;
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE(Vote, player_name, votes_for, votes_against);
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(Vote, voted_player, votes_for, votes_against);
 };

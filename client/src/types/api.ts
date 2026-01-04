@@ -38,6 +38,12 @@ export interface Game {
   rounds: Round[];
 }
 
+export interface Vote {
+  voted_player: string;
+  votes_for: string[];
+  votes_against: string[];
+}
+
 // ============================================================================
 // State Types
 // ============================================================================
@@ -48,6 +54,7 @@ export interface GameState {
   game_start_time: number;
   players_list: Player[]; // Empty when game is active
   game: Game | null; // null when in lobby, Game object when active
+  current_vote: Vote | null; // null when no vote is active, Vote object when active
 }
 
 // ============================================================================

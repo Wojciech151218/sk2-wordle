@@ -69,8 +69,11 @@ Result<GameState> GameState::vote(std::string voting_player, std::string voted_p
 
     
 
-    
-    current_vote->vote_for(voting_player);
+    if(vote_for) {
+        current_vote->vote_for(voting_player);
+    } else {
+        current_vote->vote_against(voting_player);
+    }
 
     if(current_vote->is_vote_ended(players_list.size())) {
         Cron::instance().set_job_settings(

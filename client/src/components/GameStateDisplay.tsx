@@ -1,13 +1,18 @@
 import React from 'react';
 import { useGameContext } from '../context';
 import { PlayersList } from './PlayersList';
+import type { Vote } from '../types';
+
+const hasVoted = (vote: Vote, playerName: string): boolean => {
+  return vote.votes_for.includes(playerName) || vote.votes_against.includes(playerName);
+};
 
 /**
  * Reusable component to display game state information
  * Used in both Join and Lobby screens
  */
 export const GameStateDisplay: React.FC = () => {
-  const { gameState, connectionStatus } = useGameContext();
+  const { gameState, connectionStatus, playerName, apiLoading, castVote } = useGameContext();
   if (connectionStatus === 'disconnected') {
     return (
       <div className="state-display">
@@ -31,6 +36,10 @@ export const GameStateDisplay: React.FC = () => {
   const isGameRunning = Boolean(activeGame);
   const playersInLobby = gameState.players_list;
   const playersInGame = activeGame?.players_list ?? [];
+  const currentVote = gameState.current_vote;
+
+  const kickEnabled = !currentVote && connectionStatus === 'connected' && Boolean(playerName);
+  const disableKick = apiLoading || connectionStatus !== 'connected';
 
   return (
     <div className="state-display">
@@ -62,16 +71,112 @@ export const GameStateDisplay: React.FC = () => {
         </div>
       </div>
 
-        <PlayersList 
-          players={playersInLobby} 
-          title="Players in Lobby" 
-          isGameRunning={isGameRunning} 
-        />
-        <PlayersList 
-          players={playersInGame} 
-          title="Players in Game" 
-          isGameRunning={isGameRunning} 
-        />
+      {currentVote && (
+        <div className="vote-modal-overlay" role="dialog" aria-modal="true" aria-label="Kick vote">
+          <div className="vote-modal">
+            <div className="vote-modal-header">
+              <div className="vote-modal-title">
+                Vote to kick <strong>{currentVote.voted_player}</strong>
+              </div>
+              <div className="vote-modal-subtitle">
+                {playerName && (
+                  <>
+                    {playerName === currentVote.voted_player
+                      ? "You can't vote in your own kick vote"
+                      : hasVoted(currentVote, playerName)
+                        ? 'You already voted'
+                        : 'Cast your vote'}
+                  </>
+                )}
+              </div>
+            </div>
+
+            <div className="vote-modal-actions">
+              <button
+                type="button"
+                className="btn btn-primary"
+                disabled={
+                  apiLoading ||
+                  connectionStatus !== 'connected' ||
+                  !playerName ||
+                  playerName === currentVote.voted_player ||
+                  hasVoted(currentVote, playerName)
+                }
+                onClick={() => castVote(currentVote.voted_player, true)}
+              >
+                Vote kick
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                disabled={
+                  apiLoading ||
+                  connectionStatus !== 'connected' ||
+                  !playerName ||
+                  playerName === currentVote.voted_player ||
+                  hasVoted(currentVote, playerName)
+                }
+                onClick={() => castVote(currentVote.voted_player, false)}
+              >
+                Vote keep
+              </button>
+            </div>
+
+            <div className="vote-modal-lists">
+              <div className="vote-list vote-list-for">
+                <div className="vote-list-header">
+                  <span>For kick</span>
+                  <span className="vote-count">{currentVote.votes_for.length}</span>
+                </div>
+                <div className="vote-list-body">
+                  {currentVote.votes_for.length === 0 ? (
+                    <div className="vote-empty">No votes yet</div>
+                  ) : (
+                    currentVote.votes_for.map((p) => (
+                      <div key={`for-${p}`} className="vote-name">{p}</div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              <div className="vote-list vote-list-against">
+                <div className="vote-list-header">
+                  <span>Against kick</span>
+                  <span className="vote-count">{currentVote.votes_against.length}</span>
+                </div>
+                <div className="vote-list-body">
+                  {currentVote.votes_against.length === 0 ? (
+                    <div className="vote-empty">No votes yet</div>
+                  ) : (
+                    currentVote.votes_against.map((p) => (
+                      <div key={`against-${p}`} className="vote-name">{p}</div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <PlayersList
+        players={playersInLobby}
+        title="Players in Lobby"
+        isGameRunning={isGameRunning}
+        enableKick={kickEnabled}
+        currentPlayerName={playerName}
+        disableKick={disableKick}
+        onKick={(votedPlayer) => castVote(votedPlayer, true)}
+      />
+      <PlayersList
+        players={playersInGame}
+        title="Players in Game"
+        isGameRunning={isGameRunning}
+        enableKick={kickEnabled}
+        currentPlayerName={playerName}
+        disableKick={disableKick}
+        onKick={(votedPlayer) => castVote(votedPlayer, true)}
+      />
     </div>
   );
 };

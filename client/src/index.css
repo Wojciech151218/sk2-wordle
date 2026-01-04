@@ -301,8 +301,76 @@ input:disabled {
   border-radius: 6px;
 }
 
+.player-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.player-avatar {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-color);
+  flex: 0 0 auto;
+}
+
+.player-initials {
+  font-weight: 800;
+  font-size: 0.85em;
+  color: var(--text-primary);
+  user-select: none;
+}
+
+.player-kick-btn {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  background-color: rgba(248, 113, 113, 0.9);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85em;
+  line-height: 1;
+  opacity: 0;
+  transform: scale(0.95);
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.player-item:hover .player-kick-btn {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
+.player-kick-btn:hover:not(:disabled) {
+  border-color: rgba(255, 255, 255, 0.35);
+  background-color: rgba(248, 113, 113, 1);
+}
+
+.player-kick-btn:disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
 .player-name {
   font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .ready-badge,
@@ -337,6 +405,127 @@ input:disabled {
   color: var(--text-secondary);
   text-align: center;
   padding: 1rem;
+}
+
+/* ============================================================================
+   VOTE MODAL
+   ============================================================================ */
+
+.vote-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 1000;
+}
+
+.vote-modal {
+  width: 100%;
+  max-width: 640px;
+  background-color: var(--secondary-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  padding: 1.25rem;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.45);
+}
+
+.vote-modal-header {
+  margin-bottom: 1rem;
+}
+
+.vote-modal-title {
+  font-size: 1.1em;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.vote-modal-subtitle {
+  margin-top: 0.25rem;
+  color: var(--text-secondary);
+  font-size: 0.95em;
+}
+
+.vote-modal-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  margin-bottom: 1rem;
+}
+
+.vote-modal-lists {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.vote-list {
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background-color: rgba(255, 255, 255, 0.04);
+  overflow: hidden;
+}
+
+.vote-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 0.9rem;
+  font-weight: 700;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.vote-list-for .vote-list-header {
+  background-color: rgba(74, 222, 128, 0.12);
+}
+
+.vote-list-against .vote-list-header {
+  background-color: rgba(248, 113, 113, 0.12);
+}
+
+.vote-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.85em;
+  background-color: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-color);
+}
+
+.vote-list-body {
+  padding: 0.75rem 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 240px;
+  overflow: auto;
+}
+
+.vote-name {
+  padding: 0.45rem 0.6rem;
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.vote-empty {
+  color: var(--text-secondary);
+  font-size: 0.95em;
+  padding: 0.25rem 0;
+}
+
+@media (max-width: 640px) {
+  .vote-modal-lists {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ============================================================================

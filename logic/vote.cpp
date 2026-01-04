@@ -1,7 +1,7 @@
 #include "vote.h"
 
 Vote::Vote(std::string player_name)
-    : player_name(player_name), votes_for(), votes_against() {}
+    : voted_player(player_name), votes_for(), votes_against() {}
 
 void Vote::vote_for(std::string voting_player) {
     votes_for.push_back(voting_player);

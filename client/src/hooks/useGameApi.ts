@@ -43,7 +43,7 @@ interface UseGameApiReturn {
   ready: (playerName: string) => Promise<ReadyResponse>;
   getState: (playerName: string) => Promise<StateResponse>;
   guess: (playerName: string, guessWord: string) => Promise<GuessResponse>;
-  
+  vote: (votedPlayer: string, votingPlayer: string, voteFor: boolean) => Promise<VoteResponse>;
   // State
   loading: boolean;
   error: ApiError | null;
@@ -314,9 +314,10 @@ export const useGameApi = (config: UseGameApiConfig = {}): UseGameApiReturn => {
     // API Methods
     join,
     leave,
-    ready,
+    ready,  
     getState,
     guess,
+    vote,
     
     // State
     loading,

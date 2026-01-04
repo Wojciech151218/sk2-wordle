@@ -16,6 +16,7 @@ interface GameContextValue {
   leaveGame: () => Promise<void>;
   readyUp: () => Promise<void>;
   submitGuess: (guessWord: string) => Promise<GuessHistory | null>;
+  castVote: (votedPlayer: string, voteFor: boolean) => Promise<void>;
   clearError: () => void;
 }
 
@@ -46,6 +47,7 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
     leave,
     ready,
     guess,
+    vote,
     loading: apiLoading,
     error: apiError,
     clearError: clearApiError,
@@ -159,6 +161,23 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
     [playerName, guess]
   );
 
+  const castVote = useCallback(
+    async (votedPlayer: string, voteFor: boolean) => {
+      if (!playerName) return;
+
+      try {
+        setErrorMessage(null);
+        const response = await vote(votedPlayer, playerName, voteFor);
+        setGameState(response);
+        handleScreenChange(response);
+      } catch (err) {
+        setErrorMessage(err instanceof Error ? err.message : 'Failed to cast vote');
+        throw err;
+      }
+    },
+    [playerName, vote, handleScreenChange]
+  );
+
   const clearError = useCallback(() => {
     setErrorMessage(null);
     clearApiError();
@@ -176,6 +195,7 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
       leaveGame,
       readyUp,
       submitGuess,
+      castVote,
       clearError,
     }),
     [
@@ -190,6 +210,7 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
       leaveGame,
       readyUp,
       submitGuess,
+      castVote,
       clearError,
     ]
   );
