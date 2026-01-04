@@ -89,3 +89,15 @@ Result<std::unique_ptr<RequestBody>> GuessRequest::validate(const nlohmann::json
     );
 }
 
+Result<std::unique_ptr<RequestBody>> VoteRequest::validate(const nlohmann::json& json) {
+    if (!json.contains("voted_player")) return Error("voted_player field is missing", HttpStatusCode::BAD_REQUEST);
+    if (!json.contains("voting_player")) return Error("voting_player field is missing", HttpStatusCode::BAD_REQUEST);
+    if (!json.contains("vote_for")) return Error("vote_for field is missing", HttpStatusCode::BAD_REQUEST);
+
+    return Result<std::unique_ptr<RequestBody>>(
+        std::make_unique<VoteRequest>(
+            json["voted_player"].get<std::string>(),
+            json["voting_player"].get<std::string>(),
+            json["vote_for"].get<bool>())
+    );
+}

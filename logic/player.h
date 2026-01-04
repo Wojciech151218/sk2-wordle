@@ -7,6 +7,8 @@ class Game;
 class Round;
 class GameState;
 
+
+
 /*
     Player trzyma stan konkretnego gracza
     round_errors rośnie w Round::make_guess() gdy GuessResult == ADDED
@@ -14,6 +16,7 @@ class GameState;
 class Player {
 private:
     std::string player_name;
+
     int round_errors;   // ile błędów w tej rundzie 
     int all_errors;     // suma błędów z całej gry
     bool is_alive;      // czy gracz jest nadal w grze 

@@ -8,6 +8,7 @@
 #include "game.h"
 #include "nlohmann/json.hpp"
 #include "logic/endpoints/request_bodies.h"
+#include "vote.h"
 
 
 /*
@@ -15,6 +16,9 @@
     - startuje grę, gdy jest min. 3 graczy
     - nie zarządza rundami bezpośrednio (od tego jest Game)
 */
+
+
+
 class GameState {
 private:
     time_t round_end_time;  // kiedy kończy się aktualna runda
@@ -26,6 +30,8 @@ private:
 
     // Aktywna gra 
     std::optional<Game> game;
+
+    std::optional<Vote> current_vote;
     
 
 public:
@@ -35,7 +41,10 @@ public:
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(GameState, round_end_time, round_duration, game_start_time, players_list, game)
 
     GameState(time_t round_duration);
-    
+    Result<GameState> create_vote(std::string player_name);
+    Result<GameState> vote(std::string voting_player, std::string voted_player, bool vote_for);
+
+    Vote end_vote();
 
     // Dodaje gracza do lobby
     Result<GameState> add_player(const JoinRequest& request);

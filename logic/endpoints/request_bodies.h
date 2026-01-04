@@ -37,3 +37,15 @@ class GuessRequest : public StateRequest {
 };
 
 
+class VoteRequest : public RequestBody {
+    public:
+        VoteRequest(std::string voted_player, std::string voting_player,bool vote_for) :
+         RequestBody(), voted_player(voted_player), voting_player(voting_player), vote_for(vote_for) {};
+        VoteRequest() : RequestBody() {};
+        Result<std::unique_ptr<RequestBody>> validate(const nlohmann::json& json) override;
+
+        std::string voted_player;
+        std::string voting_player;
+        bool vote_for;
+};
+

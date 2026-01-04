@@ -162,7 +162,7 @@ export const GameScreen: React.FC = () => {
         {/* Main Game Area */}  
         <main className="game-main">
           <header className="game-header">
-            <h1>⚔️ Battle Royale</h1>
+            <h1>Wordle Battle Royale</h1>
             <div className="game-info">
               <div className="info-badge">
                 Round {currentRoundNumber}

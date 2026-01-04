@@ -23,7 +23,7 @@ export const LobbyScreen: React.FC = () => {
     <div className="screen lobby-screen">
       <div className="screen-content">
         <header className="screen-header">
-          <h1>⚔️ Wordle Battle Royale</h1>
+          <h1>Wordle Battle Royale</h1>
           <p className="subtitle">Welcome, <strong>{safePlayerName}</strong>!</p>
         </header>
 

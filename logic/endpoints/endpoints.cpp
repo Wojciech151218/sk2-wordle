@@ -18,7 +18,21 @@ void set_game_state_cron() {
             nlohmann::json json = game_state;
             WebSocketPool::instance().broadcast_all(json);
         },
-   std::chrono::seconds(60), Cron::JobMode::OFF);
+   std::chrono::seconds(60), Cron::JobMode::OFF)
+   .add_job(
+    "vote_end",
+    []() {
+        auto vote = game_state.end_vote();
+        if (vote.get_result()) {
+            Logger::instance().info("Vote ended successfully");
+            game_state.remove_player(vote.get_player_name());
+        } else {
+            Logger::instance().info("Vote ended unsuccessfully");
+        }
+        nlohmann::json json = game_state;
+        WebSocketPool::instance().broadcast_all(json);
+    },
+    std::chrono::seconds(60), Cron::JobMode::OFF);
 };
 
 ServerMethod join_method = ServerMethod<JoinRequest>("/join", HttpMethod::POST, 
@@ -81,6 +95,20 @@ ServerMethod guess_method = ServerMethod<GuessRequest>("/guess", HttpMethod::POS
     nlohmann::json json;
     json["state"] = game_state;
     json["guess_result"] = result.unwrap();  //tablica WordleWord
+    WebSocketPool::instance().broadcast_all(json);
+    return Result<nlohmann::json>(json);
+});
+
+ServerMethod vote_method = ServerMethod<VoteRequest>("/vote", HttpMethod::POST,
+[](const VoteRequest& request) {
+    
+    auto result = game_state.vote(
+        request.voting_player,
+         request.voted_player, 
+         request.vote_for
+        );
+    if (result.is_err()) return Result<nlohmann::json>(result.unwrap_err());
+    nlohmann::json json = game_state;
     WebSocketPool::instance().broadcast_all(json);
     return Result<nlohmann::json>(json);
 });

@@ -41,6 +41,33 @@ Result<GameState> GameState::add_player(const JoinRequest& request) {
 }
 
 
+Result<GameState> GameState::create_vote(std::string player_name) {
+
+    if(current_vote.has_value()) return Error("Vote already exists", HttpStatusCode::FORBIDDEN);
+    current_vote = Vote(player_name);
+
+    return Result<GameState>(*this);
+}
+
+Result<GameState> GameState::vote(std::string voting_player, std::string voted_player, bool vote_for) {
+
+    int voting_time = 60;
+    if (!current_vote.has_value()){
+
+        Cron::instance().set_job_mode("vote_end", Cron::JobMode::ONCE);
+        Cron::instance().set_job_interval("vote_end", std::chrono::seconds(voting_time));
+        current_vote = Vote(voted_player);
+    }
+    current_vote->vote_for(voting_player);
+}
+
+Vote GameState::end_vote() {
+
+
+    auto result = current_vote.value_or(Vote());
+    current_vote.reset();
+    return result;
+}
 
 Result<GameState> GameState::remove_player(const JoinRequest& request) {
     std::string player_name = request.player_name;
