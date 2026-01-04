@@ -82,6 +82,12 @@ Result<std::vector<WordleWord>> Round::make_guess(Player* player,
 
     Guesses& g = it->second;
 
+    // 403 jeśli gracz już zgadł w tej rundzie
+    if (g.has_won()) {
+        return Error("Player already solved the word in this round", HttpStatusCode::FORBIDDEN);
+    }
+
+
     auto colored_res = g.add_guess_word(guess, word);
     if (colored_res.is_err())
         return colored_res.unwrap_err();
