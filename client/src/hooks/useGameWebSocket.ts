@@ -160,7 +160,6 @@ export const useGameWebSocket = (
         
         console.log('[WebSocket] Game state updated:', data.state);
       }
-      
       else {
         console.warn('[WebSocket] Received invalid message format:', data);
       }

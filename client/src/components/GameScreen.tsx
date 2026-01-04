@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { WordleBoard } from './WordleBoard';
 import { GameKeyboard } from './GameKeyboard';
 import { PlayerStats } from './PlayerStats';
 import { useGameContext } from '../context';
-import type { GuessHistory } from '../types';
+import type { GuessHistory, Round } from '../types';
 
 /**
  * Game Screen - Active game view with Wordle board, keyboard, and player stats
@@ -22,28 +22,56 @@ export const GameScreen: React.FC = () => {
   const [localError, setLocalError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const previousRoundsRef = useRef<Round[]>([]);
+  const [rounds, setRounds] = useState<Round[]>([]);
+
+
+  useEffect(() => {
+    if (!gameState) return;
+
+
+    setRounds(gameState.game?.rounds ?? []);
+  }, [gameState]);
+
+  useEffect(() => {
+    if (previousRoundsRef.current.length < rounds.length) {
+      setGuessHistory([]);
+      previousRoundsRef.current = rounds;
+      return;
+    }
+  }, [rounds]);
+
   const resolvedPlayerName = playerName ?? '';
   const game = gameState?.game;
-  const currentRound = game?.rounds[game?.rounds.length - 1];
+  const currentRound = rounds[rounds.length - 1];
   const currentPlayer = game?.players_list.find((p) => p.player_name === resolvedPlayerName);
   const isAlive = currentPlayer?.is_alive ?? false;
   const wordLength = currentRound?.word.length ?? 0;
   const maxAttempts = 6;
 
+
+
+
+
+  
   // Calculate time remaining
   const [timeRemaining, setTimeRemaining] = useState(0);
   useEffect(() => {
     if (!gameState) return;
 
+    // Use round_end_time from currentRound if available, otherwise fall back to gameState.round_end_time
+    const endTime = currentRound?.round_end_time ?? gameState.round_end_time;
+
     const updateTime = () => {
-      const remaining = Math.max(0, Math.floor(gameState.round_end_time - Date.now() / 1000));
+      const now = Date.now() / 1000; // Convert to seconds
+      const remaining = Math.max(0, Math.round(endTime - now));
       setTimeRemaining(remaining);
     };
 
     updateTime();
     const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
-  }, [gameState]);
+  }, [gameState, currentRound]);
 
   // Handle keyboard input
   const handleKeyPress = useCallback(
@@ -131,7 +159,7 @@ export const GameScreen: React.FC = () => {
           />
         </aside>
 
-        {/* Main Game Area */}
+        {/* Main Game Area */}  
         <main className="game-main">
           <header className="game-header">
             <h1>⚔️ Battle Royale</h1>
