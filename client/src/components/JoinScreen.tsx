@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { GameStateDisplay } from './GameStateDisplay';
 import { useGameContext } from '../context';
 
 /**
