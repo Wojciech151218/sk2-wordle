@@ -101,29 +101,40 @@ Result<std::vector<WordleWord>> Game::make_guess(const std::string& player_name,
                                                  const std::string& guess,
                                                  std::time_t client_ts) {
     if (rounds.empty()) {
-        if (!start_round()) return Error("Failed to start round", HttpStatusCode::INTERNAL_SERVER_ERROR);
+        if (!start_round())
+            return Error("Failed to start round", HttpStatusCode::INTERNAL_SERVER_ERROR);
     }
 
+    // jeśli runda już minęła czasowo -> zakończ ją (może skończyć grę)
     if (!rounds.back().is_round_active()) {
-        if (!end_round()) return Error("Failed to end round", HttpStatusCode::INTERNAL_SERVER_ERROR);
+        const bool next_started = end_round();
+        if (!next_started) {
+            // gra skończona — NIE traktuj tego jako INTERNAL_SERVER_ERROR
+            // po prostu zwróć poprawny response (historia może być pusta)
+            return Result<std::vector<WordleWord>>(std::vector<WordleWord>{});
+        }
     }
 
     Player* p = find_player_ptr_by_name(player_name);
     if (!p) return Error("Player not found", HttpStatusCode::NOT_FOUND);
     if (!p->is_alive) return Error("Player eliminated", HttpStatusCode::FORBIDDEN);
 
-    // TU DODAJESZ client_ts
+    // !!! REFERENCJA, nie kopia
+    Round& r = rounds.back();
 
-    auto most_recent_round = rounds.back();
-    auto result = most_recent_round.make_guess(p, guess, client_ts);
-    if(result.is_err()) {
-        return result.unwrap_err();
+    auto res = r.make_guess(p, guess, client_ts);
+    if (res.is_err()) return res.unwrap_err();
+
+    // kopiujemy historię zanim ewentualnie dojdzie nowa runda
+    auto history = res.unwrap();
+
+    // jeśli wszyscy żywi zgadli -> kończ rundę i startuj następną
+    if (r.check_if_round_is_over()) {
+        const bool next_started = end_round();
+        (void)next_started;
     }
-    // check if whole game is over as well
-    if(most_recent_round.check_if_round_is_over()) {
-        start_round();
-        return std::vector<WordleWord>();
-    }
-    return result.unwrap();
+
+    return Result<std::vector<WordleWord>>(history);
 }
+
 
