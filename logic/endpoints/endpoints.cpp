@@ -22,13 +22,7 @@ void set_game_state_cron() {
    .add_job(
     "vote_end",
     []() {
-        auto vote = game_state.end_vote();
-        if (vote.get_result()) {
-            Logger::instance().info("Vote ended successfully");
-            game_state.remove_player(vote.get_player_name());
-        } else {
-            Logger::instance().info("Vote ended unsuccessfully");
-        }
+        game_state.end_vote();
         nlohmann::json json = game_state;
         WebSocketPool::instance().broadcast_all(json);
     },

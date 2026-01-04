@@ -1,6 +1,7 @@
 #include "game_state.h"
 #include <ctime>
 #include "server/cron/cron.h"
+#include "server/web-socket/web_socket_pool.h"
 
 GameState::GameState(time_t round_duration)
     : round_end_time(0),
@@ -41,32 +42,60 @@ Result<GameState> GameState::add_player(const JoinRequest& request) {
 }
 
 
-Result<GameState> GameState::create_vote(std::string player_name) {
-
-    if(current_vote.has_value()) return Error("Vote already exists", HttpStatusCode::FORBIDDEN);
-    current_vote = Vote(player_name);
-
-    return Result<GameState>(*this);
-}
 
 Result<GameState> GameState::vote(std::string voting_player, std::string voted_player, bool vote_for) {
 
     int voting_time = 60;
+
+    if(current_vote->get_player_name() == voting_player) {
+        return Error("You cannot vote for yourself", HttpStatusCode::FORBIDDEN);
+    }
+
+    if(std::find_if(players_list.begin(), players_list.end(), 
+    [&](const Player& p){ return p.player_name == voted_player; }) == players_list.end()) {
+        return Error("Player to be voted not found", HttpStatusCode::NOT_FOUND);
+    }
+    if(std::find_if(players_list.begin(), players_list.end(), 
+    [&](const Player& p){ return p.player_name == voting_player; }) == players_list.end()) {
+        return Error("Player to vote not found", HttpStatusCode::NOT_FOUND);
+    }
+
     if (!current_vote.has_value()){
 
         Cron::instance().set_job_mode("vote_end", Cron::JobMode::ONCE);
         Cron::instance().set_job_interval("vote_end", std::chrono::seconds(voting_time));
         current_vote = Vote(voted_player);
     }
+
+    
+
+    
     current_vote->vote_for(voting_player);
+
+    if(current_vote->is_vote_ended(players_list.size())) {
+        Cron::instance().set_job_settings(
+            "vote_end", 
+            Cron::JobMode::OFF, 
+            std::chrono::seconds(voting_time)
+        );
+        end_vote();
+        nlohmann::json json = *this;
+        WebSocketPool::instance().broadcast_all(json);
+    }
+
+    return Result<GameState>(*this);
 }
 
-Vote GameState::end_vote() {
-
-
-    auto result = current_vote.value_or(Vote());
+void GameState::end_vote() {
+    auto vote = current_vote.value_or(Vote());
+    if (vote.get_result()) {
+        Logger::instance().info("Vote ended successfully");
+        remove_player(vote.get_player_name());
+    } else {
+        Logger::instance().info("Vote ended unsuccessfully");
+    }
     current_vote.reset();
-    return result;
+
 }
 
 Result<GameState> GameState::remove_player(const JoinRequest& request) {

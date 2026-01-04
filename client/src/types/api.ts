@@ -89,6 +89,12 @@ export interface StateRequest {
   timestamp: string;
 }
 
+export interface VoteRequest {
+  voted_player: string;
+  voting_player: string;
+  vote_for: boolean;
+}
+
 export interface GuessRequest {
   player_name: string;
   timestamp: string;
@@ -106,6 +112,8 @@ export interface LeaveResponse extends GameState {}
 export interface ReadyResponse extends GameState {}
 
 export interface StateResponse extends GameState {}
+
+export interface VoteResponse extends GameState {}
 
 export interface GuessResponse {
   state: GameState;

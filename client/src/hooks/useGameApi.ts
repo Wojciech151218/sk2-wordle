@@ -8,6 +8,7 @@ import axios, { AxiosError, type AxiosInstance, type AxiosResponse } from 'axios
 import type {
   JoinRequest,
   JoinResponse,
+  VoteResponse,
   LeaveRequest,
   LeaveResponse,
   ReadyRequest,
@@ -17,6 +18,7 @@ import type {
   GuessRequest,
   GuessResponse,
   ApiError,
+  VoteRequest,
 } from '../types';
 
 // ============================================================================
@@ -157,6 +159,28 @@ export const useGameApi = (config: UseGameApiConfig = {}): UseGameApiReturn => {
   // ============================================================================
   // API Method: JOIN
   // ============================================================================
+
+  const vote = useCallback(async (votedPlayer: string, votingPlayer: string, voteFor: boolean): Promise<VoteResponse> => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const request: VoteRequest = {
+        voted_player: votedPlayer,
+        voting_player: votingPlayer,
+        vote_for: voteFor,
+      };
+      
+      return await apiCallWrapper(() => api.post<VoteResponse>('/vote', request));
+    } catch (err) {
+      const apiError = handleApiError(err);
+      setError(apiError);
+      throw apiError;
+    } finally {
+      setLoading(false);
+    }
+  }, [api]);
+
   
   const join = useCallback(async (playerName: string): Promise<JoinResponse> => {
     setLoading(true);

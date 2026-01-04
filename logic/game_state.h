@@ -33,18 +33,16 @@ private:
 
     std::optional<Vote> current_vote;
     
-
 public:
     Result<GameState> set_ready(const StateRequest& request);
     bool all_ready_in_lobby() const;
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(GameState, round_end_time, round_duration, game_start_time, players_list, game)
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(GameState, round_end_time, round_duration, game_start_time, players_list, game,current_vote)
 
     GameState(time_t round_duration);
-    Result<GameState> create_vote(std::string player_name);
     Result<GameState> vote(std::string voting_player, std::string voted_player, bool vote_for);
 
-    Vote end_vote();
+    void end_vote();
 
     // Dodaje gracza do lobby
     Result<GameState> add_player(const JoinRequest& request);

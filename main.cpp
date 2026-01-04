@@ -38,6 +38,7 @@ int main(int argc, char* argv[]) {
     server.add_method(leave_method);
     server.add_method(state_method);
     server.add_method(guess_method);
+    server.add_method(vote_method);
     server.start(
         std::stoi(config.get_config("http_port").value_or("8080")), 
         config.get_config("address").value_or("0.0.0.0")
