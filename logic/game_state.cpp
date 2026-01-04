@@ -93,24 +93,52 @@ bool GameState::start_game() {
     return true;
 }
 
+// void GameState::end_game() {
+//     if (!game.has_value()) return;
+
+//     // przerzuć graczy z gry do lobby
+//     players_list = std::move(game->players_list);
+
+//     // reset stanu graczy żeby mogli grać od nowa
+//     for (auto& p : players_list) {
+//         p.reset_state();
+//     }
+
+//     // wyczyść grę
+//     game.reset();
+
+//     // wyzeruj czasy w GameState
+//     round_end_time = 0;
+//     game_start_time = 0;
+// }
 void GameState::end_game() {
     if (!game.has_value()) return;
 
-    // przerzuć graczy z gry do lobby
-    players_list = std::move(game->players_list);
+    // 1) wyciągnij graczy z gry (move)
+    auto returning = std::move(game->players_list);
 
-    // reset stanu graczy żeby mogli grać od nowa
-    for (auto& p : players_list) {
+    // 2) zresetuj stan graczy wracających z gry
+    for (auto& p : returning) {
         p.reset_state();
     }
 
-    // wyczyść grę
-    game.reset();
+    // 3) dołącz ich do lobby, NIE NADPISUJ lobby
+    for (auto& p : returning) {
+        const bool exists = (std::find_if(players_list.begin(), players_list.end(),
+            [&](const Player& lp){ return lp.player_name == p.player_name; }) != players_list.end());
 
-    // wyzeruj czasy w GameState
+        if (!exists) {
+            players_list.push_back(std::move(p));
+        }
+        // jeśli exists -> polityka: ignoruj / nadpisz / zwróć błąd (ja bym ignorował)
+    }
+
+    // 4) wyczyść grę i czasy
+    game.reset();
     round_end_time = 0;
     game_start_time = 0;
 }
+
 
 
 
