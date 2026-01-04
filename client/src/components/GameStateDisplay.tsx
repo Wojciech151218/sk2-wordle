@@ -1,5 +1,6 @@
 import React from 'react';
 import { useGameContext } from '../context';
+import { PlayersList } from './PlayersList';
 
 /**
  * Reusable component to display game state information
@@ -28,9 +29,8 @@ export const GameStateDisplay: React.FC = () => {
 
   const activeGame = gameState.game;
   const isGameRunning = Boolean(activeGame);
-  const playersInLobby = isGameRunning 
-    ? activeGame!.players_list 
-    : gameState.players_list;
+  const playersInLobby = gameState.players_list;
+  const playersInGame = activeGame?.players_list ?? [];
 
   return (
     <div className="state-display">
@@ -62,30 +62,16 @@ export const GameStateDisplay: React.FC = () => {
         </div>
       </div>
 
-      <div className="info-section">
-        <h3>Players ({playersInLobby.length})</h3>
-        <div className="players-list">
-          {playersInLobby.length === 0 ? (
-            <p className="empty-state">No players yet</p>
-          ) : (
-            playersInLobby.map((player) => (
-              <div key={player.player_name} className="player-item">
-                <span className="player-name">{player.player_name}</span>
-                {!isGameRunning && (
-                  <span className={`ready-badge ${player.is_ready ? 'ready' : 'not-ready'}`}>
-                    {player.is_ready ? '✓ Ready' : 'Not Ready'}
-                  </span>
-                )}
-                {isGameRunning && (
-                  <span className={`alive-badge ${player.is_alive ? 'alive' : 'eliminated'}`}>
-                    {player.is_alive ? '● Alive' : '✕ Eliminated'}
-                  </span>
-                )}
-              </div>
-            ))
-          )}
-        </div>
-      </div>
+        <PlayersList 
+          players={playersInLobby} 
+          title="Players in Lobby" 
+          isGameRunning={isGameRunning} 
+        />
+        <PlayersList 
+          players={playersInGame} 
+          title="Players in Game" 
+          isGameRunning={isGameRunning} 
+        />
     </div>
   );
 };
