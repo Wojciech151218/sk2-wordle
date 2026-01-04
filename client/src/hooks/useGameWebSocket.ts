@@ -136,22 +136,32 @@ export const useGameWebSocket = (
   const handleMessage = useCallback((event: MessageEvent) => {
     try {
       const data = JSON.parse(event.data);
+
+      const isDataGameState = (d : any) => d && 
+        typeof d === 'object' &&
+        Array.isArray(d.players_list) &&
+        typeof d.round_end_time === 'number' &&
+        typeof d.round_duration === 'number' &&
+        typeof d.game_start_time === 'number';
       
       // Validate that it's a GameState object with required fields
       if (
-        data && 
-        typeof data === 'object' &&
-        Array.isArray(data.players_list) &&
-        typeof data.round_end_time === 'number' &&
-        typeof data.round_duration === 'number' &&
-        typeof data.game_start_time === 'number'
+        isDataGameState(data)
       ) {
         setGameState(data as GameState);
         setLastMessageTime(new Date());
         setMessageCount(prev => prev + 1);
         
         console.log('[WebSocket] Game state updated:', data);
-      } else {
+      } else if (isDataGameState(data.state)) {
+        setGameState(data.state as GameState);
+        setLastMessageTime(new Date());
+        setMessageCount(prev => prev + 1);
+        
+        console.log('[WebSocket] Game state updated:', data.state);
+      }
+      
+      else {
         console.warn('[WebSocket] Received invalid message format:', data);
       }
     } catch (error) {

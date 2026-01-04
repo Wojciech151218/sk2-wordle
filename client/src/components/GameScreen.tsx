@@ -24,9 +24,10 @@ export const GameScreen: React.FC = () => {
 
   const resolvedPlayerName = playerName ?? '';
   const game = gameState?.game;
+  const currentRound = game?.rounds[game?.rounds.length - 1];
   const currentPlayer = game?.players_list.find((p) => p.player_name === resolvedPlayerName);
   const isAlive = currentPlayer?.is_alive ?? false;
-  const wordLength = 5; // Standard Wordle word length
+  const wordLength = currentRound?.word.length ?? 0;
   const maxAttempts = 6;
 
   // Calculate time remaining
@@ -115,7 +116,7 @@ export const GameScreen: React.FC = () => {
     );
   }
 
-  const currentRound = game.rounds.length;
+  const currentRoundNumber = game.rounds.length;
   const isGameOver = !game.players_list.some((p) => p.is_alive);
 
   return (
@@ -126,7 +127,7 @@ export const GameScreen: React.FC = () => {
           <PlayerStats
             players={game.players_list}
             currentPlayerName={resolvedPlayerName}
-            roundNumber={currentRound}
+            roundNumber={currentRoundNumber}
           />
         </aside>
 
@@ -136,7 +137,7 @@ export const GameScreen: React.FC = () => {
             <h1>⚔️ Battle Royale</h1>
             <div className="game-info">
               <div className="info-badge">
-                Round {currentRound}
+                Round {currentRoundNumber}
               </div>
               <div className="info-badge">
                 ⏱️ {timeRemaining}s

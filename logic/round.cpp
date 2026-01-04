@@ -7,6 +7,7 @@ static std::string pick_random_word_5() {
         "bread", "chair", "zebra", "piano", "stone",
         "night", "light", "water", "candy", "snake"
     };
+    
 
     static std::mt19937 rng(std::random_device{}());
 
@@ -16,11 +17,13 @@ static std::string pick_random_word_5() {
     return words[dist(rng)];
 }
 
+static std::string test_word = "test";
+
 /*
     Konstruktor rundy
 */
 Round::Round(std::vector<Player*> player_list, time_t round_duration)
-    : word(pick_random_word_5()),
+    : word(test_word), //pick_random_word_5()),
       round_duration(round_duration) {
 
     round_start_time = std::time(nullptr);
