@@ -55,8 +55,18 @@ Result<GameState> GameState::remove_player(const JoinRequest& request) {
 }
 
 void GameState::next_round() {
-    game->end_round();
+    if (!game.has_value()) return;
+
+    const bool next_started = game->end_round();
+    if (!next_started) {
+        end_game();   // <- PRZERZUT DO LOBBY
+        return;
+    }
+
+    // (opcjonalnie) aktualizacja czasu rundy w GameState
+    round_end_time = std::time(nullptr) + round_duration;
 }
+
 
 bool GameState::start_game() {
     // gra już trwa
@@ -84,29 +94,24 @@ bool GameState::start_game() {
 }
 
 void GameState::end_game() {
-    // kończymy aktywną grę i przerzucamy graczy z gry do lobby (żeby mogli grać znowu)
-    game = std::nullopt;
+    if (!game.has_value()) return;
 
-    // jeśli nie dało się odpalić kolejnej rundy -> koniec gry
-    const bool next_started = game->end_round();
-    if (!next_started) {
-        // przerzuć graczy z gry do lobby
-        players_list = std::move(game->players_list);
+    // przerzuć graczy z gry do lobby
+    players_list = std::move(game->players_list);
 
-        // reset stanu graczy żeby mogli grać od nowa
-        for (auto& p : players_list) {
-            p.reset_state();
-        }
-
-        // wyczyść grę
-        game.reset();
-
-        // wyzeruj czasy w GameState
-        round_end_time = 0;
-        game_start_time = 0;
-        return;
+    // reset stanu graczy żeby mogli grać od nowa
+    for (auto& p : players_list) {
+        p.reset_state();
     }
+
+    // wyczyść grę
+    game.reset();
+
+    // wyzeruj czasy w GameState
+    round_end_time = 0;
+    game_start_time = 0;
 }
+
 
 
 Result<GameState> GameState::get_state(const StateRequest& request) const {
