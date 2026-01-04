@@ -4,7 +4,7 @@
  */
 
 import { useState, useCallback, useMemo } from 'react';
-import axios, { AxiosError, type AxiosInstance } from 'axios';
+import axios, { AxiosError, type AxiosInstance, type AxiosResponse } from 'axios';
 import type {
   JoinRequest,
   JoinResponse,
@@ -89,6 +89,35 @@ const handleApiError = (error: unknown): ApiError => {
 // Main Hook
 // ============================================================================
 
+const isDevelopment = true; //import.meta.env.DEV;
+
+const apiCallWrapper = async <T>(call: () => Promise<AxiosResponse<T>>): Promise<T> => {
+  try {
+    const response = await call();
+    const responseData = response.data;
+    if (isDevelopment) {
+      console.log('server response:', responseData);
+      if ((responseData as any)?.error || (responseData as any)?.status === "error") {
+        console.error('server error response:', responseData);
+      }
+    }
+    return responseData;
+  } catch (error) {
+    if (isDevelopment) {
+      console.error('API call error:', error);
+      if (axios.isAxiosError(error)) {
+        console.error('Axios error details:', {
+          message: error.message,
+          status: error.response?.status,
+          data: error.response?.data,
+          url: error.config?.url,
+        });
+      }
+    }
+    throw error;
+  }
+};
+
 /**
  * Hook for interacting with the Wordle Game API
  * 
@@ -138,8 +167,8 @@ export const useGameApi = (config: UseGameApiConfig = {}): UseGameApiReturn => {
         player_name: playerName,
       };
       
-      const response = await api.post<JoinResponse>('/join', request);
-      return response.data;
+      return await apiCallWrapper(() => api.post<JoinResponse>('/join', request));
+      
     } catch (err) {
       const apiError = handleApiError(err);
       setError(apiError);
@@ -162,10 +191,9 @@ export const useGameApi = (config: UseGameApiConfig = {}): UseGameApiReturn => {
         player_name: playerName,
       };
       
-      const response = await api.delete<LeaveResponse>('/leave', {
+      return await apiCallWrapper(() => api.delete<LeaveResponse>('/leave', {
         data: request,
-      });
-      return response.data;
+      }));
     } catch (err) {
       const apiError = handleApiError(err);
       setError(apiError);
@@ -189,8 +217,7 @@ export const useGameApi = (config: UseGameApiConfig = {}): UseGameApiReturn => {
         timestamp: getCurrentTimestamp(),
       };
       
-      const response = await api.post<ReadyResponse>('/ready', request);
-      return response.data;
+      return await apiCallWrapper(() => api.post<ReadyResponse>('/ready', request));
     } catch (err) {
       const apiError = handleApiError(err);
       setError(apiError);
@@ -215,10 +242,9 @@ export const useGameApi = (config: UseGameApiConfig = {}): UseGameApiReturn => {
       };
       
       // Note: GET with body is unusual but matches the API spec
-      const response = await api.get<StateResponse>('/', {
+      return await apiCallWrapper(() => api.get<StateResponse>('/', {
         data: request,
-      });
-      return response.data;
+      }));
     } catch (err) {
       const apiError = handleApiError(err);
       setError(apiError);
@@ -246,8 +272,7 @@ export const useGameApi = (config: UseGameApiConfig = {}): UseGameApiReturn => {
         guess: guessWord,
       };
       
-      const response = await api.post<GuessResponse>('/guess', request);
-      return response.data;
+      return await apiCallWrapper(() => api.post<GuessResponse>('/guess', request));
     } catch (err) {
       const apiError = handleApiError(err);
       setError(apiError);
