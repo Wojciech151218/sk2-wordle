@@ -55,6 +55,8 @@ export interface GameState {
   players_list: Player[]; // Empty when game is active
   game: Game | null; // null when in lobby, Game object when active
   current_vote: Vote | null; // null when no vote is active, Vote object when active
+  vote_duration: number; // Seconds
+  vote_end_time: number; // Unix timestamp (0 when no vote is active)
 }
 
 // ============================================================================

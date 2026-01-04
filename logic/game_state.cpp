@@ -8,35 +8,37 @@ GameState::GameState(time_t round_duration)
       round_duration(round_duration),
       game_start_time(0),
       players_list(),
-      game(std::nullopt) {}
+      game(std::nullopt),
+      vote_duration(60),
+      vote_end_time(0) {}
 
 Result<GameState> GameState::add_player(const JoinRequest& request) {
     std::string player_name = request.player_name;
 
-    //todo
+    // todo
     // blokada duplikatów w lobby
-    // for (size_t i = 0; i < players_list.size(); ++i) {
-    //     const Player& p = players_list[i];
-    //     if (p.player_name == player_name) 
-    //         return Error("Player already in lobby", HttpStatusCode::FORBIDDEN);
-    // }
-
-    // // jeśli gra trwa, to też blokujemy duplikaty z aktualnej rozgrywki
-    // if (game.has_value()) {
-    //     for (const auto& p : game->players_list) {
-    //         if (p.player_name == player_name) 
-    //             return Error("Player already in game", HttpStatusCode::FORBIDDEN);
-    //     }
-    // }
-    // players_list.emplace_back(player_name);
-
-
-    // dodaj do lobby
-
-    if(std::find_if(players_list.begin(), players_list.end(), 
-    [&](const Player& p){ return p.player_name == player_name; }) == players_list.end()) {
-        players_list.push_back(player_name);
+    for (size_t i = 0; i < players_list.size(); ++i) {
+        const Player& p = players_list[i];
+        if (p.player_name == player_name) 
+            return Error("Player already in lobby", HttpStatusCode::FORBIDDEN);
     }
+
+    // jeśli gra trwa, to też blokujemy duplikaty z aktualnej rozgrywki
+    if (game.has_value()) {
+        for (const auto& p : game->players_list) {
+            if (p.player_name == player_name) 
+                return Error("Player already in game", HttpStatusCode::FORBIDDEN);
+        }
+    }
+    players_list.emplace_back(player_name);
+
+
+    // // dodaj do lobby
+
+    // if(std::find_if(players_list.begin(), players_list.end(), 
+    // [&](const Player& p){ return p.player_name == player_name; }) == players_list.end()) {
+    //     players_list.push_back(player_name);
+    // }
 
     return Result<GameState>(*this);
 }
@@ -45,9 +47,10 @@ Result<GameState> GameState::add_player(const JoinRequest& request) {
 
 Result<GameState> GameState::vote(std::string voting_player, std::string voted_player, bool vote_for) {
 
-    int voting_time = 60;
+    const time_t voting_time = vote_duration;
 
-    if(current_vote->get_player_name() == voting_player) {
+    // Prevent self-vote (and avoid dereferencing empty optional vote)
+    if (voted_player == voting_player) {
         return Error("You cannot vote for yourself", HttpStatusCode::FORBIDDEN);
     }
 
@@ -62,9 +65,13 @@ Result<GameState> GameState::vote(std::string voting_player, std::string voted_p
 
     if (!current_vote.has_value()){
 
-        Cron::instance().set_job_mode("vote_end", Cron::JobMode::ONCE);
-        Cron::instance().set_job_interval("vote_end", std::chrono::seconds(voting_time));
+        Cron::instance().set_job_settings(
+            "vote_end", 
+            Cron::JobMode::ONCE, 
+            std::chrono::seconds(voting_time)
+        );
         current_vote = Vote(voted_player);
+        vote_end_time = std::time(nullptr) + voting_time;
     }
 
     
@@ -98,6 +105,7 @@ void GameState::end_vote() {
         Logger::instance().info("Vote ended unsuccessfully");
     }
     current_vote.reset();
+    vote_end_time = 0;
 
 }
 

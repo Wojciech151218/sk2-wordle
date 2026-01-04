@@ -6,7 +6,7 @@
 #include "server/cron/cron.h"
 #include "server/utils/logger.h"
 
-GameState game_state = GameState(60);
+GameState game_state = GameState(30);
 
 void set_game_state_cron() {
     Cron& cron = Cron::instance();

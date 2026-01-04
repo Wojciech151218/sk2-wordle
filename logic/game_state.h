@@ -32,12 +32,26 @@ private:
     std::optional<Game> game;
 
     std::optional<Vote> current_vote;
+
+    // VOTE TIMER
+    time_t vote_duration;  // ile trwa głosowanie (sekundy)
+    time_t vote_end_time;  // kiedy kończy się głosowanie (unix time)
     
 public:
     Result<GameState> set_ready(const StateRequest& request);
     bool all_ready_in_lobby() const;
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(GameState, round_end_time, round_duration, game_start_time, players_list, game,current_vote)
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(
+        GameState,
+        round_end_time,
+        round_duration,
+        game_start_time,
+        players_list,
+        game,
+        current_vote,
+        vote_duration,
+        vote_end_time
+    )
 
     GameState(time_t round_duration);
     Result<GameState> vote(std::string voting_player, std::string voted_player, bool vote_for);

@@ -37,6 +37,10 @@ export const GameStateDisplay: React.FC = () => {
   const playersInLobby = gameState.players_list;
   const playersInGame = activeGame?.players_list ?? [];
   const currentVote = gameState.current_vote;
+  const voteTimeRemaining =
+    currentVote && gameState.vote_end_time
+      ? Math.max(0, Math.floor(gameState.vote_end_time - Date.now() / 1000))
+      : null;
 
   const kickEnabled = !currentVote && connectionStatus === 'connected' && Boolean(playerName);
   const disableKick = apiLoading || connectionStatus !== 'connected';
@@ -79,6 +83,12 @@ export const GameStateDisplay: React.FC = () => {
                 Vote to kick <strong>{currentVote.voted_player}</strong>
               </div>
               <div className="vote-modal-subtitle">
+                {voteTimeRemaining !== null && (
+                  <>
+                    Time remaining: <strong>{voteTimeRemaining}s</strong>
+                    <span> · </span>
+                  </>
+                )}
                 {playerName && (
                   <>
                     {playerName === currentVote.voted_player
