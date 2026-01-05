@@ -5,6 +5,15 @@ import type { GameState, GuessHistory } from '../types';
 
 type AppScreen = 'join' | 'lobby' | 'game';
 
+const getErrorMessage = (err: unknown, fallback: string): string => {
+  // Handles native Error, ApiError ({ message: string }), AxiosError-like, and other "error-ish" values.
+  if (typeof err === 'string') return err;
+  if (err && typeof err === 'object' && 'message' in err && typeof (err as any).message === 'string') {
+    return (err as any).message;
+  }
+  return fallback;
+};
+
 interface GameContextValue {
   gameState: GameState | null;
   connectionStatus: ConnectionStatus;
@@ -107,7 +116,7 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
         setPlayerName(name);
         localStorage.setItem(PLAYER_NAME_KEY, name);
       } catch (err) {
-        setErrorMessage(err instanceof Error ? err.message : 'Failed to join game');
+        setErrorMessage(getErrorMessage(err, 'Failed to join game'));
         throw err;
       }
     },
@@ -125,7 +134,7 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
       localStorage.removeItem(PLAYER_NAME_KEY);
       handleScreenChange(response);
     } catch (err) {
-      setErrorMessage(err instanceof Error ? err.message : 'Failed to leave game');
+      setErrorMessage(getErrorMessage(err, 'Failed to leave game'));
       throw err;
     }
   }, [playerName, leave, handleScreenChange]);
@@ -139,7 +148,7 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
       setGameState(response);
       handleScreenChange(response);
     } catch (err) {
-      setErrorMessage(err instanceof Error ? err.message : 'Failed to ready up');
+      setErrorMessage(getErrorMessage(err, 'Failed to ready up'));
       throw err;
     }
   }, [playerName, ready, handleScreenChange]);
@@ -154,7 +163,7 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
         setGameState(state);
         return guess_result;
       } catch (err) {
-        setErrorMessage(err instanceof Error ? err.message : 'Failed to submit guess');
+        setErrorMessage(getErrorMessage(err, 'Failed to submit guess'));
         throw err;
       }
     },
@@ -171,7 +180,7 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
         setGameState(response);
         handleScreenChange(response);
       } catch (err) {
-        setErrorMessage(err instanceof Error ? err.message : 'Failed to cast vote');
+        setErrorMessage(getErrorMessage(err, 'Failed to cast vote'));
         throw err;
       }
     },

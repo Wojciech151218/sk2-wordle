@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useGameContext } from '../context';
 import { PlayersList } from './PlayersList';
 import type { Vote } from '../types';
@@ -37,9 +37,24 @@ export const GameStateDisplay: React.FC = () => {
   const playersInLobby = gameState.players_list;
   const playersInGame = activeGame?.players_list ?? [];
   const currentVote = gameState.current_vote;
+  const [nowSec, setNowSec] = useState(() => Date.now() / 1000);
+
+  // Locally tick the countdown while a vote is active so the UI updates even
+  // if the server doesn't push state updates every second.
+  useEffect(() => {
+    if (!currentVote || !gameState.vote_end_time) return;
+
+    setNowSec(Date.now() / 1000);
+    const id = window.setInterval(() => {
+      setNowSec(Date.now() / 1000);
+    }, 250);
+
+    return () => window.clearInterval(id);
+  }, [currentVote, gameState.vote_end_time]);
+
   const voteTimeRemaining =
     currentVote && gameState.vote_end_time
-      ? Math.max(0, Math.floor(gameState.vote_end_time - Date.now() / 1000))
+      ? Math.max(0, Math.floor(gameState.vote_end_time - nowSec))
       : null;
 
   const kickEnabled = !currentVote && connectionStatus === 'connected' && Boolean(playerName);
