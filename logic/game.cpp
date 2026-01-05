@@ -85,12 +85,21 @@ bool Game::end_round() {
 // Gra się kończy gdy jest <= 1 żywy gracz
 bool Game::check_if_game_is_over() {
     int alive_players = 0;
+    std::optional<std::string> player_name = std::nullopt;
     for (const auto& p : players_list) {
-        auto current_round = rounds.back();
-        //current_round.
-        if (p.is_alive ) alive_players++;
+        
+        if (p.is_alive) {
+            player_name = p.player_name;
+            alive_players++;
+        }
+        if(alive_players > 1) {
+            return false;
+        }
+        
     }
-    return alive_players <= 1;
+    auto current_round = rounds.back();
+
+    return  alive_players == 0 || current_round.has_won(player_name.value_or(""));
 }
 
 int Game::get_round() const {

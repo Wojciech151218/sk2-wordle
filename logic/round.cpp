@@ -72,6 +72,16 @@ bool Round::check_if_round_is_over() const {
     }
     return true;
 }
+
+bool Round::has_won(std::string player_name) const {
+    auto it = std::find_if(players_map.begin(), players_map.end(), [&](const auto& p) {
+        return p.first->player_name == player_name;
+    });
+    if (it == players_map.end())
+        return false;
+    
+    return it->second.has_won();
+}
 /*
     make_guess:
     - sprawdza czy runda trwa, gracz istnieje i żyje

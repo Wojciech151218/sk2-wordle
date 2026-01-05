@@ -37,6 +37,8 @@ public:
                                                const std::string& guess,
                                                std::time_t client_ts);
 
+    bool has_won(std::string player_name) const;
+
     void finalize_round();
 
 };
