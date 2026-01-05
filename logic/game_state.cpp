@@ -197,7 +197,6 @@ void GameState::end_game() {
         if (!exists) {
             players_list.push_back(std::move(p));
         }
-        // jeśli exists -> polityka: ignoruj / nadpisz / zwróć błąd (ja bym ignorował)
     }
 
     // 4) wyczyść grę i czasy
