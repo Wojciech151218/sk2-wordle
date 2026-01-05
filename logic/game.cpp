@@ -86,7 +86,9 @@ bool Game::end_round() {
 bool Game::check_if_game_is_over() {
     int alive_players = 0;
     for (const auto& p : players_list) {
-        if (p.is_alive) alive_players++;
+        auto current_round = rounds.back();
+        //current_round.
+        if (p.is_alive ) alive_players++;
     }
     return alive_players <= 1;
 }
@@ -96,7 +98,6 @@ int Game::get_round() const {
 }
 
 
-// Obsługa guess:  /////////!!!!!!!!!!!!!!!   NIE WIEM CZY DOBRZE  !!!!!!!!!!!!!!!!!
 Result<std::vector<WordleWord>> Game::make_guess(const std::string& player_name,
                                                  const std::string& guess,
                                                  std::time_t client_ts) {
@@ -105,12 +106,10 @@ Result<std::vector<WordleWord>> Game::make_guess(const std::string& player_name,
             return Error("Failed to start round", HttpStatusCode::INTERNAL_SERVER_ERROR);
     }
 
-    // jeśli runda już minęła czasowo -> zakończ ją (może skończyć grę)
     if (!rounds.back().is_round_active()) {
         const bool next_started = end_round();
         if (!next_started) {
-            // gra skończona — NIE traktuj tego jako INTERNAL_SERVER_ERROR
-            // po prostu zwróć poprawny response (historia może być pusta)
+
             return Result<std::vector<WordleWord>>(std::vector<WordleWord>{});
         }
     }

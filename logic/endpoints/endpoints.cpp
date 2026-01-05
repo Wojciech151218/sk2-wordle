@@ -6,7 +6,7 @@
 #include "server/cron/cron.h"
 #include "server/utils/logger.h"
 
-GameState game_state = GameState(30);
+GameState game_state = GameState(120);
 
 void set_game_state_cron() {
     Cron& cron = Cron::instance();
@@ -85,6 +85,7 @@ ServerMethod guess_method = ServerMethod<GuessRequest>("/guess", HttpMethod::POS
 [](const GuessRequest& request) {
     auto result = game_state.make_guess(request);
     if (result.is_err()) return Result<nlohmann::json>(result.unwrap_err());
+
 
     nlohmann::json json;
     json["state"] = game_state;

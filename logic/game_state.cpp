@@ -220,7 +220,18 @@ Result<std::vector<WordleWord>> GameState::make_guess(const GuessRequest& reques
     if (!game.has_value())
         return Error("Game not found", HttpStatusCode::NOT_FOUND);
 
-    return game->make_guess(request.player_name, request.guess, request.timestamp);
+    auto guess_result = game->make_guess(
+        request.player_name, 
+        request.guess, 
+        request.timestamp
+    );
+    if (guess_result.is_err()) return guess_result.unwrap_err();
+
+    if(game->check_if_game_is_over()) {
+        end_game();
+    }
+
+    return guess_result.unwrap();
 }
 
 
