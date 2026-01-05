@@ -1,21 +1,44 @@
 #include "round.h"
 #include <random>
 
-static std::string pick_random_word_5() {
-    static const std::vector<std::string> words = {
+static std::string pick_random_word() {
+    // Picks a random word of length 4, 5, or 6 (chosen randomly each round).
+    static const std::vector<std::string> words4 = {
+        "book", "tree", "lamp", "rain", "wind",
+        "gold", "ship", "road", "fish", "game",
+        "snow", "frog", "wolf", "milk", "ring",
+        "sand", "card", "king", "mint", "bell"
+    };
+
+    static const std::vector<std::string> words5 = {
         "apple", "grape", "lemon", "mango", "pearl",
         "bread", "chair", "zebra", "piano", "stone",
-        "night", "light", "water", "candy", "snake"
+        "night", "light", "water", "candy", "snake",
     };
-    
 
     static std::mt19937 rng(std::random_device{}());
 
-    // generator liczb całkowitych w zakresie [0, words.size()-1]
-    std::uniform_int_distribution<size_t> dist(0, words.size() - 1);
+    static const std::vector<std::string> words6 = {
+        "planet", "silver", "banana", "castle", "forest",
+        "button", "dragon", "rabbit", "bright", "winter",
+        "singer", "yellow", "magnet", "secret", "rocket"
+    };
 
-    return words[dist(rng)];
+    // Randomly pick length: 4, 5, or 6
+    std::uniform_int_distribution<int> len_dist(4, 6);
+    const int len = len_dist(rng);
+
+    const std::vector<std::string>& pool =
+        (len == 4) ? words4 :
+        (len == 5) ? words5 :
+                    words6;
+
+    // generator liczb całkowitych w zakresie [0, pool.size()-1]
+    std::uniform_int_distribution<size_t> dist(0, pool.size() - 1);
+    return pool[dist(rng)];
 }
+
+
 
 static std::string test_word = "test";
 
@@ -23,7 +46,7 @@ static std::string test_word = "test";
     Konstruktor rundy
 */
 Round::Round(std::vector<Player*> player_list, time_t round_duration)
-    : word(test_word), //pick_random_word_5()),
+    : word(pick_random_word()),
       round_duration(round_duration) {
 
     round_start_time = std::time(nullptr);

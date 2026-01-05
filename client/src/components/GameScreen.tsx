@@ -217,11 +217,6 @@ export const GameScreen: React.FC = () => {
             />
           </div>
 
-          <div className="game-actions">
-            <button onClick={leaveGame} className="btn btn-secondary" disabled={apiLoading}>
-              Leave Game
-            </button>
-          </div>
         </main>
       </div>
     </div>
