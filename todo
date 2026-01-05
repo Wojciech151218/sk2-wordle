@@ -1,2 +1,0 @@
-- dodac obsluge nieblokujacych socketów 
-- dodac obslugiwanie ponownego odczytu wiadomości na podstawie protokolu (ws frame i http)
